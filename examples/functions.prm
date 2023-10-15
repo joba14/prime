@@ -1,0 +1,32 @@
+
+func add(a: i32, b: i32) -> i32 {
+	return a + b;
+}
+
+inl func is_even(v: u32) -> i8 {
+	return v % 2 == 0;
+}
+
+func print_remainder(a: i32, b: i32) {
+	print_i32(a % b);
+}
+
+inl func increment(v: &mut i32) {
+	v += 1;
+}
+
+func invoke(f: func(i32, i32) -> i32, a: i32, b: i32) -> i32 {
+	return f(a, b);
+}
+
+func test() {
+	{
+		let result: i32 = invoke(func(a: i32, b: i32) -> i32 {
+			return a * b;
+		}, 11, 15);
+	}
+
+	{
+		let result: i32 = invoke(add, 11, 15);
+	}
+}
