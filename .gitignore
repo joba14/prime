@@ -60,9 +60,7 @@ dkms.conf
 
 # Visual Studio Code local configs
 .vscode/*
-!.vscode/c_cpp_properties.json
 !.vscode/*.code-snippets
-!.vscode/settings.json
 
 # Custom, project-related ignores
 build

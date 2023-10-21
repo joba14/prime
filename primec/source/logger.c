@@ -1,18 +1,18 @@
 
 /**
- * @file prime_logger.c
+ * @file logger.c
  * 
  * @copyright This file is part of the "Prime" project and is distributed under
  * "Prime GPLv1" license.
  * 
  * @author joba14
  * 
- * @date 2023-10-01
+ * @date 2023-10-21
  */
 
-#include <prime_common/prime_logger.h>
+#include <logger.h>
 
-#include <prime_common/prime_asserts.h>
+#include <debug.h>
 
 #include <stdbool.h>
 #include <stdarg.h>
@@ -33,11 +33,11 @@ static void log_with_tag(
 	const char* const format,
 	va_list args);
 
-void prime_logger_info(
+void logger_info(
 	const char* const format,
 	...)
 {
-	prime_asserts_assert(format);
+	debug_assert(format);
 
 	va_list args;
 	va_start(args, format);
@@ -45,11 +45,11 @@ void prime_logger_info(
 	va_end(args);
 }
 
-void prime_logger_warn(
+void logger_warn(
 	const char* const format,
 	...)
 {
-	prime_asserts_assert(format);
+	debug_assert(format);
 
 	va_list args;
 	va_start(args, format);
@@ -57,11 +57,11 @@ void prime_logger_warn(
 	va_end(args);
 }
 
-void prime_logger_error(
+void logger_error(
 	const char* const format,
 	...)
 {
-	prime_asserts_assert(format);
+	debug_assert(format);
 
 	va_list args;
 	va_start(args, format);
@@ -75,34 +75,38 @@ static void log_with_tag(
 	const char* const format,
 	va_list args)
 {
-	prime_asserts_assert(stream);
-	prime_asserts_assert(tag);
-	prime_asserts_assert(format);
+	debug_assert(stream);
+	debug_assert(tag);
+	debug_assert(format);
 
 	#define logging_buffer_capacity 4096
 	static char logging_buffer[logging_buffer_capacity];
-	uint32_t length = (uint32_t)vsnprintf(
+	uint64_t length = (uint64_t)vsnprintf(
 		logging_buffer, logging_buffer_capacity, format, args);
 	logging_buffer[length++] = '\n';
 	logging_buffer[length] = 0;
 	#undef logging_buffer_capacity
 
-	for (const char* buffer_iterator = logging_buffer,
-		*line_iterator = logging_buffer; *buffer_iterator; ++buffer_iterator)
+	for (const char* buffer_iterator = logging_buffer, *line_iterator = logging_buffer; *buffer_iterator; ++buffer_iterator)
 	{
-		if (*buffer_iterator == '\n')
+		const bool isSpace = *buffer_iterator == ' ';
+		const bool isNewline = *buffer_iterator == '\n';
+		const bool isOver80Symbols = (uint64_t)(buffer_iterator - line_iterator) >= 80;
+
+		if ((isOver80Symbols && isSpace) || isNewline)
 		{
 			time_t now;
-			time(&now);
+			(void)time(&now);
 
 			struct tm tm_info;
 			char time_str[20];
 
-			localtime_r(&now, &tm_info);
-			strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &tm_info);
+			(void)localtime_r(&now, &tm_info);
+			(void)strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &tm_info);
 
-			fprintf(stream, "[" ANSI_GRAY "%s" ANSI_RESET "]: %s: %.*s\n",
-				time_str, tag, (signed int)(buffer_iterator - line_iterator), line_iterator);
+			(void)fprintf(stream, "[" ANSI_GRAY "%s" ANSI_RESET "]: %s: %.*s\n",
+				time_str, tag, (signed int)(buffer_iterator - line_iterator), line_iterator
+			);
 
 			line_iterator = buffer_iterator + 1;
 		}

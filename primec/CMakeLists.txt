@@ -3,13 +3,16 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Project name and programming language definition
-project(prime_interpreter LANGUAGES C)
+project(primec LANGUAGES C)
 
 # C standard for the project
 set(CMAKE_C_STANDARD 11)
 
 # Source files of the project
 set(SOURCES
+	./source/debug.c
+	./source/logger.c
+	./source/string_view.c
 	./source/main.c
 )
 
@@ -19,6 +22,10 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Compile options of the project
 target_compile_options(${PROJECT_NAME}
 	PRIVATE
+		-g
+		-O0
+		-pedantic
+		-Wpedantic
 		-Wall
 		-Wextra
 		-Wpedantic
