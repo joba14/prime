@@ -38,7 +38,7 @@ static cli_option_descriptor_t g_cli_option_descriptors[cli_option_types_count] 
 	{
 		.short_name  = CSTRING_TO_STRING_VIEW("-wo"),
 		.long_name   = CSTRING_TO_STRING_VIEW("--with-outputs"),
-		.description = CSTRING_TO_STRING_VIEW("treat command line arguments in pairs (input and output paths).")
+		.description = CSTRING_TO_STRING_VIEW("treat command line arguments in pairs (input and output path pairs).")
 	}
 };
 
