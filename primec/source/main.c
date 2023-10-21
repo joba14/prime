@@ -58,7 +58,7 @@ signed int main(
 		(void)arguments_buffer_give(&arguments, string_view_from_cstring(argv[index + 1]));
 	}
 
-	if (arguments_count <= 0)
+	if (arguments.count <= 0)
 	{
 		logger_error("no command line arguments were provided!");
 		usage(program);
@@ -80,14 +80,14 @@ signed int main(
 	{
 		with_outputs = true;
 
-		if ((arguments_count - 1) <= 0)
+		if ((arguments.count - 1) <= 0)
 		{
 			logger_error("insufficient paths provided!");
 			usage(program);
 			exit(-1);
 		}
 
-		if ((arguments_count - 1) % 2 != 0)
+		if ((arguments.count - 1) % 2 != 0)
 		{
 			logger_error("odd amount of command line argumets provided with option `" STRING_VIEW_FMT "`!",
 				STRING_VIEW_ARG(first_argument));
