@@ -25,6 +25,7 @@
 #define arguments_buffer_capacity 128
 define_ring_buffer_type(arguments_buffer, string_view_t, arguments_buffer_capacity)
 
+#define CSTRING_TO_STRING_VIEW(_cstring) { .data = _cstring, .length = ((uint64_t)(sizeof(_cstring) / sizeof(char)) - 1) }
 static cli_option_descriptor_t g_cli_option_descriptors[cli_option_types_count] =
 {
 	[cli_option_type_help] =
@@ -89,8 +90,8 @@ signed int main(
 
 		if ((arguments.count - 1) % 2 != 0)
 		{
-			logger_error("odd amount of command line argumets provided with option `" STRING_VIEW_FMT "`!",
-				STRING_VIEW_ARG(first_argument));
+			logger_error("odd amount of command line argumets provided with option `" sv_fmt "`!",
+				sv_arg(first_argument));
 			usage(program);
 			exit(-1);
 		}
@@ -112,8 +113,8 @@ signed int main(
 			output_file_path = output_argument;
 		}
 
-		logger_info(STRING_VIEW_FMT " -> " STRING_VIEW_FMT,
-			STRING_VIEW_ARG(input_file_path), STRING_VIEW_ARG(output_file_path)
+		logger_info(sv_fmt " -> " sv_fmt,
+			sv_arg(input_file_path), sv_arg(output_file_path)
 		);
 	}
 
@@ -125,7 +126,7 @@ static void usage(
 {
 	debug_assert_string_view(program);
 
-	logger_info("usage: " STRING_VIEW_FMT " [options] <paths...>", STRING_VIEW_ARG(program));
+	logger_info("usage: " sv_fmt " [options] <paths...>", sv_arg(program));
 	logger_info(" ");
 
 	logger_info("description:");
@@ -143,10 +144,10 @@ static void usage(
 		debug_assert_string_view(cli_option_descriptor->long_name);
 		debug_assert_string_view(cli_option_descriptor->description);
 
-		logger_info("    " STRING_VIEW_FMT ", " STRING_VIEW_FMT "\n        " STRING_VIEW_FMT,
-			STRING_VIEW_ARG(cli_option_descriptor->short_name),
-			STRING_VIEW_ARG(cli_option_descriptor->long_name),
-			STRING_VIEW_ARG(cli_option_descriptor->description)
+		logger_info("    " sv_fmt ", " sv_fmt "\n        " sv_fmt,
+			sv_arg(cli_option_descriptor->short_name),
+			sv_arg(cli_option_descriptor->long_name),
+			sv_arg(cli_option_descriptor->description)
 		);
 	}
 	logger_info(" ");

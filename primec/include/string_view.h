@@ -10,40 +10,95 @@
  * @date 2023-10-21
  */
 
-#ifndef __PRIMEC__INCLUDE__STRING_VIEW_H__
-#define __PRIMEC__INCLUDE__STRING_VIEW_H__
+#ifndef __primec__include__string_view_h__
+#define __primec__include__string_view_h__
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
+/**
+ * @brief String view structure
+ * 
+ * It holds a const-pointer to a string or sequence of characters and a length.
+ */
 typedef struct
 {
 	const char* data;
 	uint64_t length;
 } string_view_t;
 
-#define CSTRING_TO_STRING_VIEW(_cstring) { .data = _cstring, .length = ((uint64_t)(sizeof(_cstring) / sizeof(char)) - 1) }
-#define STRING_VIEW_FMT "%.*s"
-#define STRING_VIEW_ARG(_string_view) ((signed int) (_string_view).length), (_string_view).data
+/**
+ * @brief String view format for printf-like functions.
+ */
+#define sv_fmt "%.*s"
 
+/**
+ * @brief String view argument for printf-like functions.
+ */
+#define sv_arg(_string_view) ((signed int) (_string_view).length), (_string_view).data
+
+/**
+ * @brief Create string view from a const-pointer to a string or sequence of characters and its length.
+ * 
+ * @param data[in]   pointer to a string or sequence of characters
+ * @param length[in] length of the string or sequence of characters
+ * 
+ * @return string_view_t
+ */
 string_view_t string_view_from_parts(
 	const char* const data,
 	const uint64_t length);
 
+/**
+ * @brief Create string view from a cstring.
+ * 
+ * @param cstring[in] pointer to a cstring
+ * 
+ * @return string_view_t
+ */
 string_view_t string_view_from_cstring(
 	const char* const cstring);
 
+/**
+ * @brief Check if two string views are equal.
+ * 
+ * @param left[in]  left comparison string view
+ * @param right[in] right comparison string view
+ * 
+ * @return bool
+ */
 bool string_view_equal(
 	const string_view_t left,
 	const string_view_t right);
 
+/**
+ * @brief Trim white space on the left side of the string view.
+ * 
+ * @param string_view[in] string view to be trimmed
+ * 
+ * @return string_view_t
+ */
 string_view_t string_view_trim_left(
 	const string_view_t string_view);
 
+/**
+ * @brief Trim white space on the right side of the string view.
+ * 
+ * @param string_view[in] string view to be trimmed
+ * 
+ * @return string_view_t
+ */
 string_view_t string_view_trim_right(
 	const string_view_t string_view);
 
+/**
+ * @brief Trim white space on both sides of the string view.
+ * 
+ * @param string_view[in] string view to be trimmed
+ * 
+ * @return string_view_t
+ */
 string_view_t string_view_trim(
 	const string_view_t string_view);
 

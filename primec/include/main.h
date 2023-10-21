@@ -10,8 +10,8 @@
  * @date 2023-10-21
  */
 
-#ifndef __PRIMEC__INCLUDE__MAIN_H__
-#define __PRIMEC__INCLUDE__MAIN_H__
+#ifndef __primec__include__main_h__
+#define __primec__include__main_h__
 
 #include <string_view.h>
 
@@ -29,6 +29,16 @@ typedef struct
 	string_view_t description;
 } cli_option_descriptor_t;
 
+/**
+ * @brief Entry point to the program.
+ * 
+ * @warning Should not be called anywhere!
+ * 
+ * @param argc arguments count
+ * @param argv pointer to arguments sequence
+ * 
+ * @return signed int
+ */
 signed int main(
 	const signed int argc,
 	const char** const argv);

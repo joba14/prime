@@ -10,17 +10,27 @@
  * @date 2023-10-21
  */
 
-#ifndef __PRIMEC__INCLUDE__LOGGER_H__
-#define __PRIMEC__INCLUDE__LOGGER_H__
+#ifndef __primec__include__logger_h__
+#define __primec__include__logger_h__
 
+/**
+ * @brief Log info level formattable messages.
+ */
 void logger_info(
 	const char* const format,
 	...) __attribute__ ((format (printf, 1, 2)));
 
+/**
+ * @brief Log warn level formattable messages.
+ */
 void logger_warn(
 	const char* const format,
 	...) __attribute__ ((format (printf, 1, 2)));
 
+/**
+ * @brief Log error level formattable messages.
+ * 
+ */
 void logger_error(
 	const char* const format,
 	...) __attribute__ ((format (printf, 1, 2)));

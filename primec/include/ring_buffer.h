@@ -10,8 +10,8 @@
  * @date 2023-10-21
  */
 
-#ifndef __PRIMEC__INCLUDE__RING_BUFFER_H__
-#define __PRIMEC__INCLUDE__RING_BUFFER_H__
+#ifndef __primec__include__ring_buffer_h__
+#define __primec__include__ring_buffer_h__
 
 #include <debug.h>
 
