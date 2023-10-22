@@ -13,7 +13,7 @@ set(SOURCES
 	./source/debug.c
 	./source/logger.c
 	./source/string_view.c
-	./source/options.c
+	./source/cli_parser.c
 	./source/tokenizer.c
 	./source/main.c
 )

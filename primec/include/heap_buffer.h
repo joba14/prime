@@ -88,6 +88,11 @@
 	{                                                                          \
 		debug_assert(heap_buffer != NULL);                                     \
 		                                                                       \
+		if (heap_buffer->count <= 0)                                           \
+		{                                                                      \
+			return;                                                            \
+		}                                                                      \
+		                                                                       \
 		if (heap_buffer->count >= heap_buffer->capacity)                       \
 		{                                                                      \
 			return;                                                            \
