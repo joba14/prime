@@ -25,18 +25,18 @@ void debug_assert_impl(
 {
 	if (!expression)
 	{
-		time_t now;
+		time_t now = {0};
 		(void)time(&now);
 
-		struct tm tm_info;
-		char time_str[20];
+		struct tm tm_info = {0};
+		char time_str[20] = {0};
 
 		(void)localtime_r(&now, &tm_info);
 		(void)strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &tm_info);
 
 		(void)fprintf(stderr,
-			"[" "\033[90m" "%s" "\033[0m" "]: " "\033[91m" "\033[1m" "%s" "\033[0m" ": assertion `%s` failed at %s:%llu\n",
-			time_str, "fatal", expression_string, file, (long long unsigned int)line);
+			"[" "\033[90m" "%s" "\033[0m" "]: " "\033[91m" "\033[1m" "%s" "\033[0m" ": assertion `%s` failed at %s:%lu\n",
+			time_str, "fatal", expression_string, file, line);
 		exit(-1);
 	}
 }

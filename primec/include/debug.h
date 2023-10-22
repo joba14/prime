@@ -16,21 +16,21 @@
 #ifndef NDEBUG
 #	include <stdbool.h>
 #	include <stdint.h>
+
 void debug_assert_impl(
 	const bool expression,
 	const char* const expression_string,
 	const char* const file,
 	const uint64_t line);
 
-/**
- * @brief Debug only assert.
- */
-#	define debug_assert(_expression) \
-		debug_assert_impl(_expression, #_expression, (const char*)__FILE__, (uint64_t)__LINE__)
+#	define debug_assert(_expression)                                           \
+		debug_assert_impl(                                                     \
+			_expression,                                                       \
+			#_expression,                                                      \
+			(const char*)__FILE__,                                             \
+			(uint64_t)__LINE__                                                 \
+		)
 #else
-/**
- * @brief Debug only assert.
- */
 #	define debug_assert(_expression)
 #endif
 

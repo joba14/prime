@@ -21,11 +21,15 @@
 #include <stdio.h>
 #include <time.h>
 
-#define ANSI_GRAY "\033[90m"
-#define ANSI_RED "\033[91m"
-#define ANSI_GREEN "\033[92m"
+#define ANSI_GRAY   "\033[90m"
+#define ANSI_RED    "\033[91m"
+#define ANSI_GREEN  "\033[92m"
 #define ANSI_YELLOW "\033[93m"
-#define ANSI_RESET "\033[0m"
+#define ANSI_RESET  "\033[0m"
+
+#define TAG_INFO  "info "
+#define TAG_WARN  "warn "
+#define TAG_ERROR "error"
 
 static void log_with_tag(
 	FILE* const stream,
@@ -41,7 +45,7 @@ void logger_info(
 
 	va_list args;
 	va_start(args, format);
-	log_with_tag(stdout, ANSI_GREEN "info " ANSI_RESET, format, args);
+	log_with_tag(stdout, ANSI_GREEN TAG_INFO ANSI_RESET, format, args);
 	va_end(args);
 }
 
@@ -53,7 +57,7 @@ void logger_warn(
 
 	va_list args;
 	va_start(args, format);
-	log_with_tag(stderr, ANSI_YELLOW "warn " ANSI_RESET, format, args);
+	log_with_tag(stderr, ANSI_YELLOW TAG_WARN ANSI_RESET, format, args);
 	va_end(args);
 }
 
@@ -65,7 +69,7 @@ void logger_error(
 
 	va_list args;
 	va_start(args, format);
-	log_with_tag(stderr, ANSI_RED "error" ANSI_RESET, format, args);
+	log_with_tag(stderr, ANSI_RED TAG_ERROR ANSI_RESET, format, args);
 	va_end(args);
 }
 

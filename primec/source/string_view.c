@@ -19,28 +19,28 @@
 #include <string.h>
 #include <ctype.h>
 
-string_view_t string_view_from_parts(
+string_view_s string_view_from_parts(
 	const char* const data,
 	const uint64_t length)
 {
 	debug_assert(data != NULL);
 	debug_assert(length > 0);
 
-	return (string_view_t)
+	return (string_view_s)
 	{
 		.data = data,
 		.length = length
 	};
 }
 
-string_view_t string_view_from_cstring(
+string_view_s string_view_from_cstring(
 	const char* const cstring)
 {
 	debug_assert(cstring != NULL);
 	const uint64_t length = (uint64_t)strlen(cstring);
 	debug_assert(length > 0);
 
-	return (string_view_t)
+	return (string_view_s)
 	{
 		.data = cstring,
 		.length = length
@@ -48,8 +48,8 @@ string_view_t string_view_from_cstring(
 }
 
 bool string_view_equal(
-	const string_view_t left,
-	const string_view_t right)
+	const string_view_s left,
+	const string_view_s right)
 {
 	debug_assert(left.data != NULL);
 	debug_assert(left.length > 0);
@@ -65,8 +65,8 @@ bool string_view_equal(
 	return (memcmp(left.data, right.data, left.length) == 0);
 }
 
-string_view_t string_view_trim_left(
-	const string_view_t string_view)
+string_view_s string_view_trim_left(
+	const string_view_s string_view)
 {
 	debug_assert(string_view.data != NULL);
 	debug_assert(string_view.length > 0);
@@ -81,8 +81,8 @@ string_view_t string_view_trim_left(
 	return string_view_from_parts(string_view.data + index, string_view.length - index);
 }
 
-string_view_t string_view_trim_right(
-	const string_view_t string_view)
+string_view_s string_view_trim_right(
+	const string_view_s string_view)
 {
 	debug_assert(string_view.data != NULL);
 	debug_assert(string_view.length > 0);
@@ -97,8 +97,8 @@ string_view_t string_view_trim_right(
 	return string_view_from_parts(string_view.data, string_view.length - index);
 }
 
-string_view_t string_view_trim(
-	const string_view_t string_view)
+string_view_s string_view_trim(
+	const string_view_s string_view)
 {
 	return string_view_trim_left(string_view_trim_right(string_view));
 }

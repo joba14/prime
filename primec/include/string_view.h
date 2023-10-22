@@ -15,10 +15,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 /**
- * @brief String view structure
+ * @brief String view structure.
  * 
  * It holds a const-pointer to a string or sequence of characters and a length.
  */
@@ -26,7 +25,7 @@ typedef struct
 {
 	const char* data;
 	uint64_t length;
-} string_view_t;
+} string_view_s;
 
 /**
  * @brief String view format for printf-like functions.
@@ -44,9 +43,9 @@ typedef struct
  * @param data[in]   pointer to a string or sequence of characters
  * @param length[in] length of the string or sequence of characters
  * 
- * @return string_view_t
+ * @return string_view_s
  */
-string_view_t string_view_from_parts(
+string_view_s string_view_from_parts(
 	const char* const data,
 	const uint64_t length);
 
@@ -55,9 +54,9 @@ string_view_t string_view_from_parts(
  * 
  * @param cstring[in] pointer to a cstring
  * 
- * @return string_view_t
+ * @return string_view_s
  */
-string_view_t string_view_from_cstring(
+string_view_s string_view_from_cstring(
 	const char* const cstring);
 
 /**
@@ -69,42 +68,43 @@ string_view_t string_view_from_cstring(
  * @return bool
  */
 bool string_view_equal(
-	const string_view_t left,
-	const string_view_t right);
+	const string_view_s left,
+	const string_view_s right);
 
 /**
  * @brief Trim white space on the left side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
  * 
- * @return string_view_t
+ * @return string_view_s
  */
-string_view_t string_view_trim_left(
-	const string_view_t string_view);
+string_view_s string_view_trim_left(
+	const string_view_s string_view);
 
 /**
  * @brief Trim white space on the right side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
  * 
- * @return string_view_t
+ * @return string_view_s
  */
-string_view_t string_view_trim_right(
-	const string_view_t string_view);
+string_view_s string_view_trim_right(
+	const string_view_s string_view);
 
 /**
  * @brief Trim white space on both sides of the string view.
  * 
  * @param string_view[in] string view to be trimmed
  * 
- * @return string_view_t
+ * @return string_view_s
  */
-string_view_t string_view_trim(
-	const string_view_t string_view);
+string_view_s string_view_trim(
+	const string_view_s string_view);
 
 #ifndef NDEBUG
 #	include <debug.h>
 #	include <stddef.h>
+
 #	define debug_assert_string_view(_string_view)                              \
 		do                                                                     \
 		{                                                                      \

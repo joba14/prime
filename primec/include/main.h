@@ -13,22 +13,6 @@
 #ifndef __primec__include__main_h__
 #define __primec__include__main_h__
 
-#include <string_view.h>
-
-typedef enum
-{
-	cli_option_type_help = 0,
-	cli_option_type_with_outputs,
-	cli_option_types_count
-} cli_option_type_t;
-
-typedef struct
-{
-	string_view_t short_name;
-	string_view_t long_name;
-	string_view_t description;
-} cli_option_descriptor_t;
-
 /**
  * @brief Entry point to the program.
  * 
