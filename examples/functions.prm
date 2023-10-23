@@ -22,14 +22,73 @@ func invoke(f: func(i32, i32) -> i32, a: i32, b: i32) -> i32 {
 
 {TODO: ???????????
 	TODO: ???????????
-	func do_something(x: ref mut i64) {
+	func do_something(x: ref mut i64, arr: ref mut [i8]) {
 		x += 10;
 	}
 
 	TODO: ???????????
-	func do_something(x: & mut i64) {
+	func do_something(x: & mut i64, arr: &mut [i8]) {
 		*x += 10;
 	}
+
+	do_something(ref my_arr)
+	do_something(&my_arr)
+
+
+
+
+
+
+
+
+
+	// .c
+	void t()
+	{
+		uint8_t arr[10];
+		uint8_t* arr_view = arr;
+	}
+
+	// .prm
+	func t() {
+		let arr: &[u8, 10];
+		let arr_view: &mut [u8] = &arr
+
+		let a: i8 = 0
+		let b: i8 = 1
+
+		token_symbol_ref
+		token_symbol_bitwise_and
+
+		if 15 & *&a + b {
+			// ... ;
+		}
+	}
+
+	// .prm
+	func t() {
+		let arr: mut [u8, 10];
+		let arr_view: ref mut [u8] = ref arr
+	}
+
+
+
+
+
+	func t(string: &mut [c8]) 
+	{
+		string[0] = 'a';
+	}
+
+	ext func puts(string: &[c8]) -> i32;
+
+	func main() -> i32 {
+		let message: &[c8] = "hello, world!\n"
+		puts(message);
+		return 0;
+	}
+
+
 }
 
 

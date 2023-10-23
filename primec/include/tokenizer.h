@@ -22,9 +22,10 @@ typedef enum
 	token_identifier,
 	token_literal,
 
+	// TODO: reference and dereference operators!
+
 	token_keyword_let,							// let
 	token_keyword_mut,							// mut
-	token_keyword_ref,							// ref
 	token_keyword_if,							// if
 	token_keyword_elif,							// elif
 	token_keyword_else,							// else
