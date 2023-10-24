@@ -16,11 +16,32 @@
 #include <string_view.h>
 #include <linked_list.h>
 
+#include <stdint.h>
+
+typedef struct
+{
+	string_view_s file;
+	uint64_t line;
+	uint64_t column;
+} location_s;
+
 typedef enum
 {
 	token_invalid = 0,
 	token_identifier,
-	token_literal,
+
+	token_literal_c8,
+	token_literal_i8,
+	token_literal_i16,
+	token_literal_i32,
+	token_literal_i64,
+	token_literal_u8,
+	token_literal_u16,
+	token_literal_u32,
+	token_literal_u64,
+	token_literal_f32,
+	token_literal_f64,
+	token_literal_str,
 
 	// TODO: reference and dereference operators!
 
@@ -36,11 +57,10 @@ typedef enum
 	token_keyword_func,							// func
 	token_keyword_inl,							// inl
 	token_keyword_ext,							// ext
+	token_keyword_alias,						// alias
 	token_keyword_struct,						// struct
 
 	token_keyword_c8,							// c8
-	token_keyword_c16,							// c16
-	token_keyword_c32,							// c32
 	token_keyword_i8,							// i8
 	token_keyword_i16,							// i16
 	token_keyword_i32,							// i32
@@ -94,13 +114,21 @@ typedef enum
 	token_punctuation_colon,					// :
 	token_punctuation_comma,					// ,
 	token_punctuation_dot,						// .
+	token_punctuation_comment,					// #
 
 	tokens_count
 } token_e;
 
 typedef struct
 {
-	void * dummy_;
+	string_view_s data;
+} identifier_s;
+
+typedef struct
+{
+	token_e type;
+	location_s location;
+	string_view_s source;
 } token_s;
 
 define_linked_list_type(tokens_list, token_s);
@@ -108,6 +136,8 @@ define_linked_list_type(tokens_list, token_s);
 typedef struct
 {
 	string_view_s file_path;
+	string_view_s source;
+	location_s location;
 } tokenizer_s;
 
 tokenizer_s tokenizer_from_parts(

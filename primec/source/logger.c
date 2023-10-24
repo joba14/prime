@@ -15,6 +15,7 @@
 #include <debug.h>
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -41,8 +42,7 @@ void logger_info(
 	const char* const format,
 	...)
 {
-	debug_assert(format);
-
+	debug_assert(format != NULL);
 	va_list args;
 	va_start(args, format);
 	log_with_tag(stdout, ANSI_GREEN TAG_INFO ANSI_RESET, format, args);
@@ -53,8 +53,7 @@ void logger_warn(
 	const char* const format,
 	...)
 {
-	debug_assert(format);
-
+	debug_assert(format != NULL);
 	va_list args;
 	va_start(args, format);
 	log_with_tag(stderr, ANSI_YELLOW TAG_WARN ANSI_RESET, format, args);
@@ -65,8 +64,7 @@ void logger_error(
 	const char* const format,
 	...)
 {
-	debug_assert(format);
-
+	debug_assert(format != NULL);
 	va_list args;
 	va_start(args, format);
 	log_with_tag(stderr, ANSI_RED TAG_ERROR ANSI_RESET, format, args);
@@ -79,9 +77,9 @@ static void log_with_tag(
 	const char* const format,
 	va_list args)
 {
-	debug_assert(stream);
-	debug_assert(tag);
-	debug_assert(format);
+	debug_assert(stream != NULL);
+	debug_assert(tag != NULL);
+	debug_assert(format != NULL);
 
 	#define logging_buffer_capacity 4096
 	static char logging_buffer[logging_buffer_capacity];

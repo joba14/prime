@@ -89,9 +89,13 @@ static cli_arguments_list_s parse_command_line(
 	const uint64_t argc,
 	const char** const argv)
 {
-	g_cli_parser = cli_parser_from_parts(string_view_from_cstring(argv[0]),
+	debug_assert(argc > 0);
+	debug_assert(argv != NULL);
+
+	g_cli_parser = cli_parser_from_parts(
+		string_view_from_cstring(argv[0]),
 		string_view_from_cstring("this executable creates intermediate representation (IR) files from prime source code files."),
-		string_view_from_cstring("this executable is part of the \"Prime\" project and is distributed under \"Prime GPLv1\" license."),
+		string_view_from_cstring("this executable is part of the \"prime\" project and is distributed under \"prime gplv1\" license."),
 		(uint64_t)(argc - 1)
 	);
 
