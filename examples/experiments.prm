@@ -36,7 +36,7 @@ void t()
 {
 	uint8_t arr[10];
 	const uint8_t* const_arr_view = (const uint8_t*)arr;
-	uint8_t* mut_arr_view = (uint8_t*)arr;
+	uint8_t* mut_arr_view = (uint8_t* const)arr;
 }
 
 // .prm (1)
@@ -51,4 +51,26 @@ func t() {
 	let arr: mut [u8, 10];
 	let const_arr_view: ref [u8] = ref arr;
 	let mut_arr_view: ref mut [u8] = ref mut arr;
+}
+
+// --------------------------------------------------
+
+// .c
+void t()
+{
+	uint8_t* const reg_a = (uint8_t* const)0x0101;
+}
+
+// .prm (1)
+func t() {
+	unsafe {
+		let reg_a: &u8 = 0x0101;
+	}
+}
+
+// .prm (2)
+func t() {
+	unsafe {
+		let reg_a: ref u8 = 0x0101;
+	}
 }
