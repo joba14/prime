@@ -129,6 +129,23 @@ typedef struct
 	token_e type;
 	location_s location;
 	string_view_s source;
+
+	union
+	{
+		string_view_s identifier;
+		char c8;
+		int8_t i8;
+		int16_t i16;
+		int32_t i32;
+		int64_t i64;
+		uint8_t u8;
+		uint16_t u16;
+		uint32_t u32;
+		uint64_t u64;
+		float f32;
+		long double f64;
+		string_view_s string;
+	};
 } token_s;
 
 define_linked_list_type(tokens_list, token_s);
