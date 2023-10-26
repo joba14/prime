@@ -58,9 +58,8 @@ typedef enum
 	token_keyword_func,							// func
 	token_keyword_inl,							// inl
 	token_keyword_ext,							// ext
-	token_keyword_alias,						// alias
 	token_keyword_struct,						// struct
-
+	token_keyword_alias,						// alias
 	token_keyword_c8,							// c8
 	token_keyword_i8,							// i8
 	token_keyword_i16,							// i16
@@ -99,10 +98,10 @@ typedef enum
 
 	token_bitwise_and,							// &
 	token_bitwise_or,							// |
-	token_bitwise_xor,							// ^
 	token_bitwise_not,							// ~
-	token_bitwise_lshift,						// <<
-	token_bitwise_rshift,						// >>
+	token_bitwise_xor,							// ^
+	token_bitwise_left_shift,					// <<
+	token_bitwise_right_shift,					// >>
 
 	token_punctuation_left_parenth,				// (
 	token_punctuation_right_parenth,			// )
@@ -111,7 +110,7 @@ typedef enum
 	token_punctuation_left_brace,				// {
 	token_punctuation_right_brace,				// }
 	token_punctuation_arrow,					// ->
-	token_punctuation_semi_colon,				// ;
+	token_punctuation_semicolon,				// ;
 	token_punctuation_colon,					// :
 	token_punctuation_comma,					// ,
 	token_punctuation_dot,						// .
