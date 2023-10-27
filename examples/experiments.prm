@@ -74,3 +74,33 @@ func t() {
 		let reg_a: ref u8 = 0x0101;
 	}
 }
+
+// --------------------------------------------------
+
+// .c
+void f()
+{
+	uint16_t var = 10;
+	uint16_t* const var_ref = &var;
+
+	const uint16_t cvar = 10;
+	const uint16_t* const cvar_ref = &var;
+}
+
+// .prm (1)
+func f() {
+	let var: mut u16 = 10;
+	let var_ref: &mut u16 = &mut var;
+
+	let cvar: u16 = 10;
+	let cvar_ref: &u16 = &cvar;
+}
+
+// .prm (2)
+func f() {
+	let var: mut u16 = 10;
+	let var_ref: &mut u16 = &mut var;
+
+	let cvar: u16 = 10;
+	let cvar_ref: ref u16 = ref cvar;
+}
