@@ -162,10 +162,12 @@ void f(int16_t* const a, const int16_t* b, const int16_t* const c)
 
 // .prm (1)
 func f(a: &mut i16, b: &i16, c: &i16) {
-	a = 10;
-	a += 1;
+	a = 10; // only the  value - reference is immutable!
+	a += 1; // only the  value - reference is immutable!
 }
 
 // .prm (2)
 func f(a: ref mut i16, b: ref i16, c: ref i16) {
+	a = 10; // only the  value - reference is immutable!
+	a += 1; // only the  value - reference is immutable!
 }
