@@ -46,6 +46,7 @@ typedef enum
 	// TODO: reference and dereference operators!
 
 	token_keyword_let,							// let
+	token_keyword_ref,							// ref
 	token_keyword_mut,							// mut
 	token_keyword_unsafe,						// unsafe
 	token_keyword_if,							// if
@@ -114,7 +115,10 @@ typedef enum
 	token_punctuation_colon,					// :
 	token_punctuation_comma,					// ,
 	token_punctuation_dot,						// .
-	token_punctuation_comment,					// #
+
+	token_comment_single_line,					// //
+	token_comment_multi_line_left,				// /*
+	token_comment_multi_line_right,				// */
 
 	tokens_count
 } token_e;
