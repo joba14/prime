@@ -122,3 +122,50 @@ func f() {
 	let carr: [u16, 10];
 	let carr_ref: ref [u16] = ref carr;
 }
+
+// --------------------------------------------------
+
+// .c
+void f()
+{
+	uint16_t arr[10];
+	uint16_t* const arr_view1 = arr;
+	uint16_t* const arr_view2 = arr + 2;
+	uint16_t* const arr_view3 = arr + 5;
+}
+
+// .prm (1)
+func f() {
+	let arr: mut [u16, 10];
+	let arr_view1: &mut [u16] = &mut arr;
+	let arr_view2: &mut [u16] = &mut arr[2:];
+	let arr_view3: &mut [u16] = &mut arr[5:];
+}
+
+// .prm (2)
+func f() {
+	let arr: mut [u16, 10];
+	let arr_view1: ref mut [u16] = ref mut arr;
+	let arr_view2: ref mut [u16] = ref mut arr[2:];
+	let arr_view3: ref mut [u16] = ref mut arr[5:];
+}
+
+// --------------------------------------------------
+
+// .c
+void f(int16_t* const a, const int16_t* b, const int16_t* const c)
+{
+	*a = 10;
+	b = &*a;
+	(void)c;
+}
+
+// .prm (1)
+func f(a: &mut i16, b: &i16, c: &i16) {
+	a = 10;
+	a += 1;
+}
+
+// .prm (2)
+func f(a: ref mut i16, b: ref i16, c: ref i16) {
+}
