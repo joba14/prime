@@ -85,6 +85,12 @@ void f()
 
 	const uint16_t cvar = 10;
 	const uint16_t* const cvar_ref = &var;
+
+	uint16_t arr[10];
+	uint16_t* const arr_ref = arr;
+
+	const uint16_t carr[10];
+	const uint16_t* const carr_ref = carr;
 }
 
 // .prm (1)
@@ -94,13 +100,25 @@ func f() {
 
 	let cvar: u16 = 10;
 	let cvar_ref: &u16 = &cvar;
+
+	let arr: mut [u16, 10];
+	let arr_ref: &mut [u16] = &mut carr;
+
+	let carr: [u16, 10];
+	let carr_ref: &[u16] = &carr;
 }
 
 // .prm (2)
 func f() {
 	let var: mut u16 = 10;
-	let var_ref: &mut u16 = &mut var;
+	let var_ref: ref mut u16 = ref mut var;
 
 	let cvar: u16 = 10;
 	let cvar_ref: ref u16 = ref cvar;
+
+	let arr: mut [u16, 10];
+	let arr_ref: ref mut [u16] = ref mut carr;
+
+	let carr: [u16, 10];
+	let carr_ref: ref [u16] = ref carr;
 }
