@@ -86,44 +86,58 @@ bool string_view_equal(
 	const string_view_s right);
 
 /**
- * @brief Trim white space on the left side of the string view.
+ * @brief Trim a sequence of characters decided by 'compare' function on the left side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
+ * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
  * 
  * @return string_view_s
  */
 string_view_s string_view_trim_left(
-	const string_view_s string_view);
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s));
 
 /**
- * @brief Trim white space on the right side of the string view.
+ * @brief Trim a sequence of characters decided by 'compare' function on the right side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
+ * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
  * 
  * @return string_view_s
  */
 string_view_s string_view_trim_right(
-	const string_view_s string_view);
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s));
 
 /**
- * @brief Trim white space on both sides of the string view.
+ * @brief Trim a sequence of characters decided by 'compare' function on both sides of the string view.
  * 
  * @param string_view[in] string view to be trimmed
+ * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
  * 
  * @return string_view_s
  */
 string_view_s string_view_trim(
-	const string_view_s string_view);
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s));
+
+bool string_view_left_split(
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s),
+	string_view_s* const left,
+	string_view_s* const right);
+
+bool string_view_right_split(
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s),
+	string_view_s* const left,
+	string_view_s* const right);
 
 #ifndef NDEBUG
-#	include <debug.h>
-#	include <stddef.h>
-
 #	define debug_assert_string_view(_string_view)                              \
 		do                                                                     \
 		{                                                                      \
 			debug_assert((_string_view).data != NULL);                         \
-			debug_assert((_string_view).length > 0);                           \
 		} while (0)
 #else
 #	define debug_assert_string_view(_string_view)

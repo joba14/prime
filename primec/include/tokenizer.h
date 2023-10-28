@@ -29,9 +29,11 @@ typedef enum
 {
 	token_invalid = 0,
 
-	token_comment_single_line,
+	token_predefined_begin,
+	token_comment_single_line = token_predefined_begin,
 	token_comment_multi_line_left,
 	token_comment_multi_line_right,
+	token_predefined_end = token_comment_multi_line_right,
 
 	tokens_count
 

@@ -19,11 +19,18 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+
+static inline bool is_end_line(const string_view_s view) { return view.length >=1 && view.data[0] == '\n'; }
+static inline bool is_end_of_multi_line_comment(const string_view_s view) { return view.length >= 2 && view.data[0] == '*' && view.data[1] == '/'; }
+static inline bool is_white_space(const string_view_s view) { return isspace(view.data[0]); }
+#define trim_left_white_space(_string_view) string_view_trim_left(_string_view, is_white_space)
+#define trim_right_white_space(_string_view) string_view_trim_right(_string_view, is_white_space)
+#define trim_white_space(_string_view) string_view_trim(_string_view, is_white_space)
 
 implement_linked_list_type(tokens_list, token_s);
 
 #define cstr2sv(_cstring) { .data = _cstring, .length = ((sizeof(_cstring) / sizeof(char)) - 1) }
-
 static const string_view_s g_stringified_tokens[tokens_count] =
 {
 	[token_comment_single_line] = 			cstr2sv("//"),
@@ -112,23 +119,51 @@ static bool try_parse_token(
 	debug_assert(tokenizer != NULL);
 	debug_assert(token != NULL);
 
-	tokenizer->source = string_view_trim_left(tokenizer->source);
+	tokenizer->source = trim_left_white_space(tokenizer->source);
 
-	for (uint64_t index = 0; index < tokens_count; ++index)
+	for (uint64_t index = token_predefined_begin; index <= token_predefined_end; ++index)
 	{
 		const string_view_s stringified_token = g_stringified_tokens[index];
 
 		if (string_view_equal_range(tokenizer->source, stringified_token, stringified_token.length))
 		{
+#if 1
 			switch (index)
 			{
 				case token_comment_single_line:
 				{
-					
+					string_view_s left, right;
+					if (string_view_left_split(tokenizer->source, is_end_line, &left, &right))
+					{
+						logger_warn("pavyko!");
+						tokenizer->source = right;
+					}
+					else
+					{
+						logger_warn("nepavyko!");
+					}
 				} break;
 
 				case token_comment_multi_line_left:
 				{
+					string_view_s left, right;
+					if (string_view_left_split(tokenizer->source, is_end_of_multi_line_comment, &left, &right))
+					{
+						tokenizer->source = right;
+
+						const string_view_s multi_line_comment_end_token =
+							g_stringified_tokens[token_comment_multi_line_right];
+						if (string_view_equal_range(tokenizer->source, multi_line_comment_end_token, multi_line_comment_end_token.length))
+						{
+							tokenizer->source.data += 2;
+							tokenizer->source.length -= 2;
+							logger_warn("pavyko!");
+						}
+					}
+					else
+					{
+						logger_warn("nepavyko!");
+					}
 				} break;
 
 				case token_comment_multi_line_right:
@@ -139,6 +174,7 @@ static bool try_parse_token(
 				{
 				} break;
 			}
+#endif
 		}
 	}
 

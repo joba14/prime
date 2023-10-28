@@ -17,7 +17,6 @@
 #include <stddef.h>
 #include <memory.h>
 #include <string.h>
-#include <ctype.h>
 
 string_view_s string_view_from_parts(
 	const char* const data,
@@ -72,9 +71,11 @@ bool string_view_equal(
 }
 
 string_view_s string_view_trim_left(
-	const string_view_s string_view)
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s))
 {
 	debug_assert(string_view.data != NULL);
+	debug_assert(compare != NULL);
 
 	if (string_view.length <= 0)
 	{
@@ -83,7 +84,7 @@ string_view_s string_view_trim_left(
 
 	uint64_t index = 0;
 
-	while (index < string_view.length && isspace(string_view.data[index]))
+	while (index < string_view.length && compare(string_view_from_parts(string_view.data + index, string_view.length - index)))
 	{
 		++index;
 	}
@@ -92,7 +93,8 @@ string_view_s string_view_trim_left(
 }
 
 string_view_s string_view_trim_right(
-	const string_view_s string_view)
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s))
 {
 	debug_assert(string_view.data != NULL);
 
@@ -103,7 +105,7 @@ string_view_s string_view_trim_right(
 
 	uint64_t index = 0;
 
-	while (index < string_view.length && isspace(string_view.data[string_view.length - index - 1]))
+	while (index < string_view.length && compare(string_view_from_parts(string_view.data + string_view.length - index - 1, string_view.length - index - 1)))
 	{
 		++index;
 	}
@@ -112,7 +114,66 @@ string_view_s string_view_trim_right(
 }
 
 string_view_s string_view_trim(
-	const string_view_s string_view)
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s))
 {
-	return string_view_trim_left(string_view_trim_right(string_view));
+	debug_assert(string_view.data != NULL);
+	debug_assert(compare != NULL);
+	return string_view_trim_left(string_view_trim_right(string_view, compare), compare);
+}
+
+bool string_view_left_split(
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s),
+	string_view_s* const left,
+	string_view_s* const right)
+{
+	debug_assert_string_view(string_view);
+	debug_assert(compare != NULL);
+	debug_assert(left != NULL);
+	debug_assert(right != NULL);
+
+	if (string_view.length <= 0)
+	{
+		return false;
+	}
+
+	uint64_t index = 0;
+
+	while (index < string_view.length && !compare(string_view_from_parts(string_view.data + index, string_view.length - index)))
+	{
+		++index;
+	}
+
+	*left = string_view_from_parts(string_view.data, index);
+	*right = string_view_from_parts(string_view.data + index, string_view.length - index);
+	return true;
+}
+
+bool string_view_right_split(
+	const string_view_s string_view,
+	bool(*compare)(const string_view_s),
+	string_view_s* const left,
+	string_view_s* const right)
+{
+	debug_assert_string_view(string_view);
+	debug_assert(compare != NULL);
+	debug_assert(left != NULL);
+	debug_assert(right != NULL);
+
+	if (string_view.length <= 0)
+	{
+		return false;
+	}
+
+	uint64_t index = 0;
+
+	while (index < string_view.length && !compare(string_view_from_parts(string_view.data + string_view.length - index - 1, string_view.length - index - 1)))
+	{
+		++index;
+	}
+
+	*left = string_view_from_parts(string_view.data, index);
+	*right = string_view_from_parts(string_view.data + index, string_view.length - index);
+	return true;
 }
