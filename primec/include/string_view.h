@@ -89,7 +89,7 @@ bool string_view_equal(
  * @brief Trim a sequence of characters decided by 'compare' function on the left side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
- * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
+ * @param compare[in]     compare function for trimming characters selection
  * 
  * @return string_view_s
  */
@@ -101,7 +101,7 @@ string_view_s string_view_trim_left(
  * @brief Trim a sequence of characters decided by 'compare' function on the right side of the string view.
  * 
  * @param string_view[in] string view to be trimmed
- * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
+ * @param compare[in]     compare function for trimming characters selection
  * 
  * @return string_view_s
  */
@@ -113,7 +113,7 @@ string_view_s string_view_trim_right(
  * @brief Trim a sequence of characters decided by 'compare' function on both sides of the string view.
  * 
  * @param string_view[in] string view to be trimmed
- * @param compare[in]     compare function for trimming characters selection (i.e. isspace)
+ * @param compare[in]     compare function for trimming characters selection
  * 
  * @return string_view_s
  */
@@ -121,12 +121,32 @@ string_view_s string_view_trim(
 	const string_view_s string_view,
 	bool(*compare)(const string_view_s));
 
+/**
+ * @brief Split string view into two by a provided compare function result from the left side.
+ * 
+ * @param string_view[in] string view to split
+ * @param compare[in]     compare function for splitting characters selection
+ * @param left[out]       left side string view after split
+ * @param right[out]      right side string view after split
+ * 
+ * @return bool
+ */
 bool string_view_left_split(
 	const string_view_s string_view,
 	bool(*compare)(const string_view_s),
 	string_view_s* const left,
 	string_view_s* const right);
 
+/**
+ * @brief Split string view into two by a provided compare function result from the right side.
+ * 
+ * @param string_view[in] string view to split
+ * @param compare[in]     compare function for splitting characters selection
+ * @param left[out]       left side string view after split
+ * @param right[out]      right side string view after split
+ * 
+ * @return bool
+ */
 bool string_view_right_split(
 	const string_view_s string_view,
 	bool(*compare)(const string_view_s),

@@ -68,8 +68,17 @@ signed int main(
 
 		tokenizer_s tokenizer = tokenizer_from_parts(input_file_path);
 		tokens_list_s tokens = tokenizer_process_file(&tokenizer);
-		(void)tokens;
-		// TODO: tokens!
+
+		for (tokens_list_node_s* iterator = tokens.head; iterator != NULL; iterator = iterator->next)
+		{
+			if (iterator->data.type == token_invalid)
+			{
+				logger_warn("-----\nINVALID\n-----\n");
+				continue;
+			}
+
+			logger_warn("-----\n" sv_fmt "\n-----\n", sv_arg(iterator->data.source));
+		}
 
 		string_view_s output_file_path = input_file_path;
 

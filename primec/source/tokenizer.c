@@ -31,11 +31,11 @@ static inline bool is_white_space(const string_view_s view) { return isspace(vie
 implement_linked_list_type(tokens_list, token_s);
 
 #define cstr2sv(_cstring) { .data = _cstring, .length = ((sizeof(_cstring) / sizeof(char)) - 1) }
-static const string_view_s g_stringified_tokens[tokens_count] =
+
+static const string_view_s g_predefined_tokens[tokens_count] =
 {
 	[token_comment_single_line] = 			cstr2sv("//"),
-	[token_comment_multi_line_left] = 		cstr2sv("/*"),
-	[token_comment_multi_line_right] = 		cstr2sv("*/"),
+	[token_comment_multi_line] = 			cstr2sv("/*"),
 };
 
 static bool read_whole_file(
@@ -121,61 +121,64 @@ static bool try_parse_token(
 
 	tokenizer->source = trim_left_white_space(tokenizer->source);
 
-	for (uint64_t index = token_predefined_begin; index <= token_predefined_end; ++index)
+	if (tokenizer->source.length <= 0)
 	{
-		const string_view_s stringified_token = g_stringified_tokens[index];
+		return false;
+	}
 
-		if (string_view_equal_range(tokenizer->source, stringified_token, stringified_token.length))
+	if (string_view_equal_range(tokenizer->source, g_predefined_tokens[token_comment_single_line], g_predefined_tokens[token_comment_single_line].length))
+	{
+		string_view_s left, right;
+
+		if (string_view_left_split(tokenizer->source, is_end_line, &left, &right))
 		{
-#if 1
-			switch (index)
-			{
-				case token_comment_single_line:
-				{
-					string_view_s left, right;
-					if (string_view_left_split(tokenizer->source, is_end_line, &left, &right))
-					{
-						logger_warn("pavyko!");
-						tokenizer->source = right;
-					}
-					else
-					{
-						logger_warn("nepavyko!");
-					}
-				} break;
-
-				case token_comment_multi_line_left:
-				{
-					string_view_s left, right;
-					if (string_view_left_split(tokenizer->source, is_end_of_multi_line_comment, &left, &right))
-					{
-						tokenizer->source = right;
-
-						const string_view_s multi_line_comment_end_token =
-							g_stringified_tokens[token_comment_multi_line_right];
-						if (string_view_equal_range(tokenizer->source, multi_line_comment_end_token, multi_line_comment_end_token.length))
-						{
-							tokenizer->source.data += 2;
-							tokenizer->source.length -= 2;
-							logger_warn("pavyko!");
-						}
-					}
-					else
-					{
-						logger_warn("nepavyko!");
-					}
-				} break;
-
-				case token_comment_multi_line_right:
-				{
-				} break;
-
-				default:
-				{
-				} break;
-			}
-#endif
+			token->type = token_comment_single_line;
+			token->source = string_view_from_parts(left.data + 2, left.length - 2);
+			tokenizer->source = right;
 		}
+		else
+		{
+			token->type = token_invalid;
+			tokenizer->source.data += 1;
+			tokenizer->source.length -= 1;
+		}
+	}
+	else if (string_view_equal_range(tokenizer->source, g_predefined_tokens[token_comment_multi_line], g_predefined_tokens[token_comment_multi_line].length))
+	{
+		string_view_s left, right;
+
+		if (string_view_left_split(tokenizer->source, is_end_of_multi_line_comment, &left, &right))
+		{
+			tokenizer->source = right;
+			const string_view_s multi_line_comment_end = string_view_from_parts("*/", 2);
+
+			if (string_view_equal_range(tokenizer->source, multi_line_comment_end, multi_line_comment_end.length))
+			{
+				tokenizer->source.data += multi_line_comment_end.length;
+				tokenizer->source.length -= multi_line_comment_end.length;
+
+				token->type = token_comment_single_line;
+				token->source = string_view_from_parts(left.data + 2, left.length - 2);
+			}
+			else
+			{
+				token->type = token_invalid;
+				tokenizer->source.data += 1;
+				tokenizer->source.length -= 1;
+			}
+		}
+		else
+		{
+			token->type = token_invalid;
+			tokenizer->source.data += 1;
+			tokenizer->source.length -= 1;
+		}
+	}
+	else
+	{
+		token->type = token_invalid;
+		tokenizer->source.data += 1;
+		tokenizer->source.length -= 1;
 	}
 
 	system("clear");
