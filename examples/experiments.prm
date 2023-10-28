@@ -171,3 +171,65 @@ func f(a: ref mut i16, b: ref i16, c: ref i16) {
 	a = 10; // only the  value - reference is immutable!
 	a += 1; // only the  value - reference is immutable!
 }
+
+// --------------------------------------------------
+
+// .c
+void f()
+{
+	float var = 0;
+	float* const ver_ref = &var;
+	float* ver_ptr = &var;
+}
+
+// .prm (1)
+func f() {
+	let var: mut f32 = 0;
+	let ver_ref: &mut f32 = &mut var;
+	let ver_ptr: *mut f32 = &mut var;
+}
+
+// .prm (2)
+func f() {
+	let var: mut f32 = 0;
+	let ver_ref: ref mut f32 = ref mut var;
+	let ver_ptr: ptr mut f32 = ref mut var;
+}
+
+// --------------------------------------------------
+
+// .c
+typedef struct
+{
+	uint8_t* data;
+	uin64_t capacity;
+	uin64_t count;
+} vector_s;
+
+vector_s vector_create(const uin64_t capacity)
+{
+	vector_s v;
+	v.data = (uint8_t*)malloc(capacity * sizeof(uint8_t));
+	assert(v.data);
+	v.capacity = capacity;
+	v.count = 0;
+	return v;
+}
+
+// .prm (1)
+struct vector_s {
+	data: &[u8],
+	capacity: u64,
+	count: u64,
+}
+
+func vector_create(capacity: u64) -> vector_s {
+	vector_s v;
+	v.data = (uint8_t*)malloc(capacity * sizeof(uint8_t));
+	assert(v.data);
+	v.capacity = capacity;
+	v.count = 0;
+	return v;
+}
+
+// .prm (2)

@@ -28,6 +28,14 @@ typedef struct
 typedef enum
 {
 	token_invalid = 0,
+
+	token_comment_single_line,
+	token_comment_multi_line_left,
+	token_comment_multi_line_right,
+
+	tokens_count
+
+#if 0
 	token_identifier,
 
 	token_literal_c8,
@@ -43,11 +51,21 @@ typedef enum
 	token_literal_f64,
 	token_literal_str,
 
-	// TODO: reference and dereference operators!
-
 	token_keyword_let,							// let
-	token_keyword_ref,							// ref
 	token_keyword_mut,							// mut
+	token_keyword_ref,							// &
+	token_keyword_ptr,							// *
+	token_keyword_c8,							// c8
+	token_keyword_i8,							// i8
+	token_keyword_i16,							// i16
+	token_keyword_i32,							// i32
+	token_keyword_i64,							// i64
+	token_keyword_u8,							// u8
+	token_keyword_u16,							// u16
+	token_keyword_u32,							// u32
+	token_keyword_u64,							// u64
+	token_keyword_f32,							// f32
+	token_keyword_f64,							// f64
 	token_keyword_unsafe,						// unsafe
 	token_keyword_if,							// if
 	token_keyword_elif,							// elif
@@ -61,17 +79,6 @@ typedef enum
 	token_keyword_ext,							// ext
 	token_keyword_struct,						// struct
 	token_keyword_alias,						// alias
-	token_keyword_c8,							// c8
-	token_keyword_i8,							// i8
-	token_keyword_i16,							// i16
-	token_keyword_i32,							// i32
-	token_keyword_i64,							// i64
-	token_keyword_u8,							// u8
-	token_keyword_u16,							// u16
-	token_keyword_u32,							// u32
-	token_keyword_u64,							// u64
-	token_keyword_f32,							// f32
-	token_keyword_f64,							// f64
 
 	token_assignment_equal,						// =
 	token_assignment_add_equal,					// +=
@@ -115,12 +122,7 @@ typedef enum
 	token_punctuation_colon,					// :
 	token_punctuation_comma,					// ,
 	token_punctuation_dot,						// .
-
-	token_comment_single_line,					// //
-	token_comment_multi_line_left,				// /*
-	token_comment_multi_line_right,				// */
-
-	tokens_count
+#endif
 } token_e;
 
 typedef struct

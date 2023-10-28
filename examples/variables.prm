@@ -1,0 +1,46 @@
+
+/**
+ * Variables
+ */
+
+func main() {
+	{ // Various variables' types
+		// NOTE: here T is any type, however, for the arrays of any type, follow the example in the comment below:
+		// let arr: mut [T, N];
+		// let arr_ref: &mut [T] = &mut arr;
+		// let arr_ptr: *mut [T] = unsafe { &mut arr as *mut [T] };
+		alias T = i16;
+
+
+		// Mutable Value
+		// The code after this comment is the same as the following c's code:
+		// uint16_t mutable_var1 = 0;
+		let mutable_var1: mut T = 0;
+
+		// Mutable Reference
+		// The code after this comment is the same as the following c's code:
+		// uint16_t* const mutable_var1_ref = &mutable_var1;
+		let mutable_var1_ref: &mut T = &mut mutable_var1;
+
+		// Mutable Pointer (unsafe)
+		// The code after this comment is the same as the following c's code:
+		// uint16_t* mutable_var1_ptr = &mutable_var1;
+		let mutable_var1_ptr: *mut T = unsafe { &mut mutable_var1 as *mut T };
+
+
+		// Immutable Value
+		// The code after this comment is the same as the following c's code:
+		// const uint16_t immutable_var1 = 0;
+		let immutable_var1: T = 0;
+
+		// Immutable Reference
+		// The code after this comment is the same as the following c's code:
+		// uint16_t* const immutable_var1_ref = &immutable_var1;
+		let immutable_var1_ref: &T = &immutable_var1;
+
+		// Immutable Pointer (unsafe)
+		// The code after this comment is the same as the following c's code:
+		// uint16_t* immutable_var1_ptr = &immutable_var1;
+		let immutable_var1_ptr: *T = unsafe { &immutable_var1 as *T };
+	}
+}

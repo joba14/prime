@@ -24,7 +24,6 @@ string_view_s string_view_from_parts(
 	const uint64_t length)
 {
 	debug_assert(data != NULL);
-	debug_assert(length > 0);
 
 	return (string_view_s)
 	{
@@ -38,13 +37,23 @@ string_view_s string_view_from_cstring(
 {
 	debug_assert(cstring != NULL);
 	const uint64_t length = (uint64_t)strlen(cstring);
-	debug_assert(length > 0);
+	return string_view_from_parts(cstring, length);
+}
 
-	return (string_view_s)
+bool string_view_equal_range(
+	const string_view_s left,
+	const string_view_s right,
+	const uint64_t length)
+{
+	debug_assert(left.data != NULL);
+	debug_assert(right.data != NULL);
+
+	if (left.length < length || right.length < length)
 	{
-		.data = cstring,
-		.length = length
-	};
+		return false;
+	}
+
+	return (memcmp(left.data, right.data, length) == 0);
 }
 
 bool string_view_equal(
@@ -52,24 +61,25 @@ bool string_view_equal(
 	const string_view_s right)
 {
 	debug_assert(left.data != NULL);
-	debug_assert(left.length > 0);
-
 	debug_assert(right.data != NULL);
-	debug_assert(right.length > 0);
 
 	if (left.length != right.length)
 	{
 		return false;
 	}
 
-	return (memcmp(left.data, right.data, left.length) == 0);
+	return string_view_equal_range(left, right, left.length);
 }
 
 string_view_s string_view_trim_left(
 	const string_view_s string_view)
 {
 	debug_assert(string_view.data != NULL);
-	debug_assert(string_view.length > 0);
+
+	if (string_view.length <= 0)
+	{
+		return string_view;
+	}
 
 	uint64_t index = 0;
 
@@ -85,7 +95,11 @@ string_view_s string_view_trim_right(
 	const string_view_s string_view)
 {
 	debug_assert(string_view.data != NULL);
-	debug_assert(string_view.length > 0);
+
+	if (string_view.length <= 0)
+	{
+		return string_view;
+	}
 
 	uint64_t index = 0;
 

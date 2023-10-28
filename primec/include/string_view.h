@@ -60,6 +60,20 @@ string_view_s string_view_from_cstring(
 	const char* const cstring);
 
 /**
+ * @brief Check if two string views are equal for provided length (range).
+ * 
+ * @param left[in]   left comparison string view
+ * @param right[in]  right comparison string view
+ * @param length[in] length of a range to check for equality
+ * 
+ * @return bool
+ */
+bool string_view_equal_range(
+	const string_view_s left,
+	const string_view_s right,
+	const uint64_t length);
+
+/**
  * @brief Check if two string views are equal.
  * 
  * @param left[in]  left comparison string view

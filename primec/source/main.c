@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 static cli_parser_s g_cli_parser;
 static string_view_s g_with_outputs_flag;
@@ -35,6 +36,9 @@ signed int main(
 	const signed int argc,
 	const char** const argv)
 {
+	// TODO: remove:
+	printf(sv_fmt "+", sv_arg(string_view_from_cstring("")));
+
 	cli_arguments_list_s arguments = parse_command_line(
 		(uint64_t)argc, argv
 	);
