@@ -71,7 +71,7 @@ signed int main(
 
 		for (tokens_list_node_s* iterator = tokens.head; iterator != NULL; iterator = iterator->next)
 		{
-			if (iterator->data.type == token_invalid)
+			if (token_invalid == iterator->data.type)
 			{
 				logger_warn("-----\nINVALID\n-----\n");
 				continue;
