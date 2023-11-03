@@ -157,7 +157,7 @@ static bool try_parse_token(
 				tokenizer->source.data += multi_line_comment_end.length;
 				tokenizer->source.length -= multi_line_comment_end.length;
 
-				token->type = token_comment_single_line;
+				token->type = token_comment_multi_line;
 				token->source = string_view_from_parts(left.data + 2, left.length - 2);
 			}
 			else
