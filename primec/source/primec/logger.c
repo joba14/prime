@@ -54,7 +54,7 @@ void primec_logger_info(
 {
 	primec_debug_assert(format != NULL);
 	va_list args; va_start(args, format);
-	log_with_tag(stdout, ANSI_GREEN TAG_WARN ANSI_RESET, format, args);
+	log_with_tag(stdout, ANSI_GREEN TAG_INFO ANSI_RESET, format, args);
 	va_end(args);
 }
 

@@ -48,6 +48,29 @@ static void usage(const char* const program)
 	);
 }
 
+static FILE* is_file_valid(const char* const file_path);
+static FILE* is_file_valid(const char* const file_path)
+{
+	FILE* const source_file = fopen(file_path, "rt");
+	struct stat source_file_stats;
+
+	if (source_file
+		&& (fstat(fileno(source_file), &source_file_stats) == 0)
+		&& (S_ISDIR(source_file_stats.st_mode) != 0))
+	{
+		primec_logger_error("unable to open %s for reading - it is a directory", file_path);
+		return NULL;
+	}
+
+	if (!source_file)
+	{
+		primec_logger_error("unable to open %s for reading - no such file", file_path);
+		return NULL;
+	}
+
+	return source_file;
+}
+
 signed int main(
 	const signed int argc,
 	const char** const argv)
@@ -113,22 +136,8 @@ signed int main(
 	for (const char** sources_iterator = sources; *sources_iterator; ++sources_iterator)
 	{
 		const char* const source_path = *sources_iterator;
-		FILE* const source_file = fopen(source_path, "rt");
-		struct stat source_file_stats;
-
-		if (source_file
-		 && (fstat(fileno(source_file), &source_file_stats) == 0)
-		 && (S_ISDIR(source_file_stats.st_mode) != 0))
-		{
-			primec_logger_error("unable to open %s for reading - it is a directory", source_path);
-			continue;
-		}
-
-		if (!source_file)
-		{
-			primec_logger_error("unable to open %s for reading: %s", source_path, strerror(errno));
-			continue;
-		}
+		FILE* const source_file = is_file_valid(source_path);
+		if (!source_file) { continue; }
 
 		primec_logger_info("file %s if good to go!", source_path);
 
@@ -147,17 +156,6 @@ signed int main(
 }
 
 		fclose(source_file);
-
-		/*
-		lex_init(&lexer, in,  i + 1);
-		parse(&lexer, subunit);
-		if (i + 1 < nsources) {
-			*next = xcalloc(1, sizeof(struct ast_subunit));
-			subunit = *next;
-			next = &subunit->next;
-		}
-		lex_finish(&lexer);
-		*/
 	}
 
 	printf("entry: %s\n", entry);

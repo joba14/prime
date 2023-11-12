@@ -68,6 +68,20 @@ primec_token_e primec_lexer_lex(
 		return token->type;
 	}
 
+	const int32_t c = getc(lexer->file);
+
+	switch (c)
+	{
+		case '#':
+		{
+			// ... 
+		} break;
+
+		default:
+		{
+		} break;
+	}
+
 	/*
 	uint32_t c = wgetc(lexer, &token->location);
 	if (c == primec_token_eof)
