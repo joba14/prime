@@ -16,7 +16,6 @@ SOURCES="
 	$PROJECT_DIR/source/primec/debug.c
 	$PROJECT_DIR/source/primec/logger.c
 	$PROJECT_DIR/source/primec/token.c
-	$PROJECT_DIR/source/primec/utf8.c
 	$PROJECT_DIR/source/primec/lexer.c
 	$PROJECT_DIR/source/main.c
 "
