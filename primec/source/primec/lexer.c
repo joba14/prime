@@ -16,7 +16,6 @@
 
 #include <stddef.h>
 #include <memory.h>
-#include <stdlib.h>
 
 primec_lexer_s primec_lexer_from_parts(
 	const char* const file_path,
@@ -27,31 +26,11 @@ primec_lexer_s primec_lexer_from_parts(
 
 	primec_lexer_s lexer;
 	memset(&lexer, 0, sizeof(primec_lexer_s));
-
 	lexer.file = file;
-	lexer.buffer_capacity = 256;
-
-	lexer.buffer = (char*)malloc(lexer.buffer_capacity * sizeof(char));
-	primec_debug_assert(lexer.buffer != NULL);
-
 	lexer.location.file = file_path;
 	lexer.location.line = 1;
 	lexer.location.column = 0;
-
-	lexer.c[0] = UINT32_MAX;
-	lexer.c[1] = UINT32_MAX;
-	// lexer.un.token = T_NONE;
-
 	return lexer;
-}
-
-void primec_lexer_cleanup(
-	primec_lexer_s* const lexer)
-{
-	primec_debug_assert(lexer != NULL);
-	primec_debug_assert(lexer->file != NULL);
-	primec_debug_assert(lexer->buffer != NULL);
-	free(lexer->buffer);
 }
 
 primec_token_e primec_lexer_lex(

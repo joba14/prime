@@ -141,7 +141,7 @@ signed int main(
 
 		primec_logger_info("file %s if good to go!", source_path);
 
-#if 0
+#if 1
 { // TODO: parse the source file here!
 		primec_lexer_s lexer = primec_lexer_from_parts(
 			source_path, source_file
@@ -152,8 +152,6 @@ signed int main(
 		{
 			primec_logger_info("%lu", (uint64_t)token.type);
 		}
-
-		primec_lexer_cleanup(&lexer);
 }
 #endif
 

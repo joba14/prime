@@ -24,35 +24,35 @@ typedef struct
 
 typedef enum
 {
-	primec_token_let,					// let
-	primec_token_mut,					// mut
-	primec_token_c8,					// c8
-	primec_token_i8,					// i8
-	primec_token_i16,					// i16
-	primec_token_i32,					// i32
-	primec_token_i64,					// i64
-	primec_token_u8,					// u8
-	primec_token_u16,					// u16
-	primec_token_u32,					// u32
-	primec_token_u64,					// u64
-	primec_token_f32,					// f32
-	primec_token_f64,					// f64
-	primec_token_unsafe,				// unsafe
-	primec_token_if,					// if
-	primec_token_elif,					// elif
-	primec_token_else,					// else
-	primec_token_loop,					// loop
-	primec_token_while,					// while
-	primec_token_break,					// break
-	primec_token_continue,				// continue
-	primec_token_return,				// return
-	primec_token_func,					// func
-	primec_token_inl,					// inl
-	primec_token_ext,					// ext
-	primec_token_struct,				// struct
-	primec_token_alias,					// alias
-	primec_token_as,					// as
-	primec_token_import,				// import
+	primec_token_keyword_let,			// let
+	primec_token_keyword_mut,			// mut
+	primec_token_keyword_c8,			// c8
+	primec_token_keyword_i8,			// i8
+	primec_token_keyword_i16,			// i16
+	primec_token_keyword_i32,			// i32
+	primec_token_keyword_i64,			// i64
+	primec_token_keyword_u8,			// u8
+	primec_token_keyword_u16,			// u16
+	primec_token_keyword_u32,			// u32
+	primec_token_keyword_u64,			// u64
+	primec_token_keyword_f32,			// f32
+	primec_token_keyword_f64,			// f64
+	primec_token_keyword_unsafe,		// unsafe
+	primec_token_keyword_if,			// if
+	primec_token_keyword_elif,			// elif
+	primec_token_keyword_else,			// else
+	primec_token_keyword_loop,			// loop
+	primec_token_keyword_while,			// while
+	primec_token_keyword_break,			// break
+	primec_token_keyword_continue,		// continue
+	primec_token_keyword_return,		// return
+	primec_token_keyword_func,			// func
+	primec_token_keyword_inl,			// inl
+	primec_token_keyword_ext,			// ext
+	primec_token_keyword_struct,		// struct
+	primec_token_keyword_alias,			// alias
+	primec_token_keyword_as,			// as
+	primec_token_keyword_import,		// import
 
 	primec_token_assign,				// =
 	primec_token_add_assign,			// +=
@@ -71,8 +71,9 @@ typedef enum
 
 	primec_token_add,					// +
 	primec_token_subtract,				// -
-	primec_token_pointer,				// *
-	primec_token_multiply = primec_token_pointer,	// *
+	primec_token_star,					// *
+	primec_token_pointer = primec_token_star,	// *
+	primec_token_multiply = primec_token_star,	// *
 	primec_token_divide,				// /
 	primec_token_modulus,				// %
 
@@ -87,8 +88,9 @@ typedef enum
 	primec_token_lor,					// ||
 	primec_token_lnot,					// !
 
-	primec_token_reference,				// &
-	primec_token_band = primec_token_reference,	// &
+	primec_token_ampersand,				// &
+	primec_token_reference = primec_token_ampersand,	// &
+	primec_token_band = primec_token_ampersand,	// &
 	primec_token_bor,					// |
 	primec_token_bnot,					// ~
 	primec_token_bxor,					// ^
@@ -111,10 +113,22 @@ typedef enum
 	primec_token_dot,					// .
 
 	primec_token_single_line_comment,	// //
-	primec_token_multi_line_comment,	// /*
+	primec_token_multi_line_comment,	// /**/
 
 	// Tokens with additional information
-	primec_token_literal,
+	primec_token_literal_c8,
+	primec_token_literal_i8,
+	primec_token_literal_i16,
+	primec_token_literal_i32,
+	primec_token_literal_i64,
+	primec_token_literal_u8,
+	primec_token_literal_u16,
+	primec_token_literal_u32,
+	primec_token_literal_u64,
+	primec_token_literal_f32,
+	primec_token_literal_f64,
+	primec_token_literal_str,
+
 	primec_token_name,
 
 	// Magic tokens
@@ -122,59 +136,36 @@ typedef enum
 	primec_token_none
 } primec_token_e;
 
-typedef enum
-{
-	// Built-in types
-	// The order of these is important
-	primec_storage_b8,
-	primec_storage_c8,
-	primec_storage_i8,
-	primec_storage_i16,
-	primec_storage_i32,
-	primec_storage_i64,
-	primec_storage_u8,
-	primec_storage_u16,
-	primec_storage_u32,
-	primec_storage_u64,
-	primec_storage_f32,
-	primec_storage_f64,
-
-	// Other types
-	STORAGE_ALIAS,
-	STORAGE_ARRAY,
-	STORAGE_ENUM,
-	STORAGE_FUNCTION,
-	STORAGE_POINTER,
-	STORAGE_SLICE,
-	STORAGE_STRUCT,
-	STORAGE_TAGGED,
-	STORAGE_TUPLE,
-	STORAGE_UNION,
-	STORAGE_VALIST,
-	STORAGE_FCONST,
-	STORAGE_ICONST,
-	STORAGE_RCONST,
-	// For internal use only
-	STORAGE_ERROR,
-} primec_storage_e;
-
 typedef struct
 {
 	primec_location_s location;
 	primec_token_e type;
-	primec_storage_e storage;
+
 	union
 	{
-		char* name;
-		uint32_t rune;
-		int64_t ival;
-		uint64_t uval;
-		long double fval;
+		char c8;
+		int8_t i8;
+		int16_t i16;
+		int32_t i32;
+		int64_t i64;
+		uint8_t u8;
+		uint16_t u16;
+		uint32_t u32;
+		uint64_t u64;
+		float f32;
+		long double f64;
+
 		struct
 		{
-			uint64_t len;
-			char* value;
-		} string;
+			char* data;
+			uint64_t length;
+		} str;
+
+		struct
+		{
+			char* data;
+			uint64_t length;
+		} name;
 	};
 } primec_token_s;
 
