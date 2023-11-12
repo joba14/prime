@@ -26,8 +26,6 @@ typedef enum
 {
 	primec_token_let,					// let
 	primec_token_mut,					// mut
-	primec_token_ref,					// &
-	primec_token_ptr,					// *
 	primec_token_c8,					// c8
 	primec_token_i8,					// i8
 	primec_token_i16,					// i16
@@ -39,11 +37,11 @@ typedef enum
 	primec_token_u64,					// u64
 	primec_token_f32,					// f32
 	primec_token_f64,					// f64
-	primec_token_as,					// as
 	primec_token_unsafe,				// unsafe
 	primec_token_if,					// if
 	primec_token_elif,					// elif
 	primec_token_else,					// else
+	primec_token_loop,					// loop
 	primec_token_while,					// while
 	primec_token_break,					// break
 	primec_token_continue,				// continue
@@ -53,17 +51,28 @@ typedef enum
 	primec_token_ext,					// ext
 	primec_token_struct,				// struct
 	primec_token_alias,					// alias
+	primec_token_as,					// as
+	primec_token_import,				// import
 
-	primec_token_equal,					// =
-	primec_token_add_equal,				// +=
-	primec_token_subtract_equal,		// -=
-	primec_token_multiply_equal,		// *=
-	primec_token_divide_equal,			// /=
-	primec_token_modulus_equal,			// %=
+	primec_token_assign,				// =
+	primec_token_add_assign,			// +=
+	primec_token_subtract_assign,		// -=
+	primec_token_multiply_assign,		// *=
+	primec_token_divide_assign,			// /=
+	primec_token_modulus_assign,		// %=
+	primec_token_land_assign,			// &&=
+	primec_token_lor_assign,			// ||=
+	primec_token_band_assign,			// &=
+	primec_token_bor_assign,			// |=
+	primec_token_bnot_assign,			// ~=
+	primec_token_bxor_assign,			// ^=
+	primec_token_lshift_assign,			// <<=
+	primec_token_rshift_assign,			// >>=
 
 	primec_token_add,					// +
 	primec_token_subtract,				// -
-	primec_token_multiply,				// *
+	primec_token_pointer,				// *
+	primec_token_multiply = primec_token_pointer,	// *
 	primec_token_divide,				// /
 	primec_token_modulus,				// %
 
@@ -78,13 +87,16 @@ typedef enum
 	primec_token_lor,					// ||
 	primec_token_lnot,					// !
 
-	primec_token_band,					// &
+	primec_token_reference,				// &
+	primec_token_band = primec_token_reference,	// &
 	primec_token_bor,					// |
 	primec_token_bnot,					// ~
 	primec_token_bxor,					// ^
 	primec_token_lshift,				// <<
 	primec_token_rshift,				// >>
 
+	primec_token_double_quote,			// "
+	primec_token_single_quote,			// '
 	primec_token_left_parenth,			// (
 	primec_token_right_parenth,			// )
 	primec_token_left_bracket,			// [
@@ -94,6 +106,7 @@ typedef enum
 	primec_token_arrow,					// ->
 	primec_token_semicolon,				// ;
 	primec_token_colon,					// :
+	primec_token_double_colon,			// ::
 	primec_token_comma,					// ,
 	primec_token_dot,					// .
 
