@@ -13,8 +13,10 @@
 #ifndef __primec__include__main_h__
 #define __primec__include__main_h__
 
-signed int main(
-	const signed int argc,
+#include <stdint.h>
+
+int32_t main(
+	const int32_t argc,
 	const char** const argv);
 
 #endif

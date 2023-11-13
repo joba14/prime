@@ -19,7 +19,6 @@
 #include <primec/lexer.h>
 
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,8 +27,80 @@
 #include <unistd.h>
 #include <getopt.h>
 
-static void usage(const char* const program);
-static void usage(const char* const program)
+static void usage(
+	const char* const program);
+
+static int32_t parse_command_line(
+	const int32_t argc,
+	const char** const argv,
+	const char** const arch,
+	const char** const entry,
+	const char** const output);
+
+static FILE* is_file_valid(
+	const char* const file_path);
+
+int32_t main(
+	const int32_t argc,
+	const char** const argv)
+{
+	const char* arch = NULL;
+	const char* entry = "main";
+	const char* output = NULL;
+
+	{
+		const int32_t code = parse_command_line(argc, argv, &arch, &entry, &output);
+		if (code <= 0) { return code; }
+	}
+
+	// TODO: handle these options:
+	(void)arch;
+	(void)entry;
+	(void)output;
+
+	const char** const source_files = argv + (uint64_t)optind;
+	const uint64_t source_files_count = (uint64_t)argc - (uint64_t)optind;
+
+	if (source_files_count <= 0)
+	{
+		primec_logger_error("no source files were provided - see '--help' for usage.");
+		return -1;
+	}
+
+	for (uint64_t index = 0; index < source_files_count; ++index)
+	{
+		const char* const source_file_path = source_files[index];
+		primec_debug_assert(source_file_path != NULL);
+		FILE* const source_file = is_file_valid(source_file_path);
+		if (!source_file) { continue; }
+
+		primec_logger_info("file %s if good to go!", source_file_path);
+
+#if 1
+{ // TODO: parse the source file here!
+		primec_lexer_s lexer = primec_lexer_from_parts(
+			source_file_path, source_file
+		);
+
+		(void)lexer;
+		/*
+		primec_token_s token;
+		while (primec_lexer_lex(&lexer, &token) != primec_token_none)
+		{
+			primec_logger_info("%lu", (uint64_t)token.type);
+		}
+		*/
+}
+#endif
+
+		fclose(source_file);
+	}
+
+	return 0;
+}
+
+static void usage(
+	const char* const program)
 {
 	primec_debug_assert(program != NULL);
 	primec_logger_log(
@@ -50,36 +121,17 @@ static void usage(const char* const program)
 	);
 }
 
-static FILE* is_file_valid(const char* const file_path);
-static FILE* is_file_valid(const char* const file_path)
+static int32_t parse_command_line(
+	const int32_t argc,
+	const char** const argv,
+	const char** const arch,
+	const char** const entry,
+	const char** const output)
 {
-	FILE* const source_file = fopen(file_path, "rt");
-	struct stat source_file_stats;
-
-	if (source_file
-		&& (fstat(fileno(source_file), &source_file_stats) == 0)
-		&& (S_ISDIR(source_file_stats.st_mode) != 0))
-	{
-		primec_logger_error("unable to open %s for reading - it is a directory", file_path);
-		return NULL;
-	}
-
-	if (!source_file)
-	{
-		primec_logger_error("unable to open %s for reading - no such file", file_path);
-		return NULL;
-	}
-
-	return source_file;
-}
-
-signed int main(
-	const signed int argc,
-	const char** const argv)
-{
-	const char* arch = NULL;
-	const char* entry = "main";
-	const char* output = NULL;
+	primec_debug_assert(argv != NULL);
+	primec_debug_assert(arch != NULL);
+	primec_debug_assert(entry != NULL);
+	primec_debug_assert(output != NULL);
 
 	static const struct option options[] =
 	{
@@ -110,17 +162,17 @@ signed int main(
 
 			case 'a':
 			{
-				arch = optarg;
+				*arch = optarg;
 			} break;
 
 			case 'e':
 			{
-				entry = optarg;
+				*entry = optarg;
 			} break;
 
 			case 'o':
 			{
-				output = optarg;
+				*output = optarg;
 			} break;
 
 			default:
@@ -131,44 +183,28 @@ signed int main(
 		}
 	}
 
-	// TODO: handle these options:
-	(void)arch;
-	(void)entry;
-	(void)output;
-
-	const char** const sources = argv + (uint64_t)optind;
-	const uint64_t sources_count = (uint64_t)argc - (uint64_t)optind;
-
-	if (sources_count <= 0)
-	{
-		primec_logger_error("no source files were provided - see '--help' for usage.");
-		return -1;
-	}
-
-	for (const char** sources_iterator = sources; *sources_iterator; ++sources_iterator)
-	{
-		const char* const source_path = *sources_iterator;
-		FILE* const source_file = is_file_valid(source_path);
-		if (!source_file) { continue; }
-
-		primec_logger_info("file %s if good to go!", source_path);
-
-#if 1
-{ // TODO: parse the source file here!
-		primec_lexer_s lexer = primec_lexer_from_parts(
-			source_path, source_file
-		);
-
-		primec_token_s token;
-		while (primec_lexer_lex(&lexer, &token) != primec_token_none)
-		{
-			primec_logger_info("%lu", (uint64_t)token.type);
-		}
+	return 1;
 }
-#endif
 
-		fclose(source_file);
+static FILE* is_file_valid(
+	const char* const file_path)
+{
+	FILE* const source_file = fopen(file_path, "rt");
+	struct stat source_file_stats;
+
+	if (source_file
+		&& (fstat(fileno(source_file), &source_file_stats) == 0)
+		&& (S_ISDIR(source_file_stats.st_mode) != 0))
+	{
+		primec_logger_error("unable to open %s for reading - it is a directory", file_path);
+		return NULL;
 	}
 
-	return 0;
+	if (!source_file)
+	{
+		primec_logger_error("unable to open %s for reading - no such file", file_path);
+		return NULL;
+	}
+
+	return source_file;
 }
