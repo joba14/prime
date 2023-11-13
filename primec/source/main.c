@@ -38,6 +38,8 @@ static void usage(const char* const program)
 		"options:\n"
 		"    -h, --help          print the help message\n"
 		"    -v, --version       print version and exit\n"
+		"    -a, --arch          set the target architecture out of:\n"
+		"                        [unixc, windowsc]\n"
 		"    -e, --entry         set the entry symbol\n"
 		"    -o, --output        set output file name\n"
 		"\n"
@@ -75,6 +77,7 @@ signed int main(
 	const signed int argc,
 	const char** const argv)
 {
+	const char* arch = NULL;
 	const char* entry = "main";
 	const char* output = NULL;
 
@@ -82,13 +85,14 @@ signed int main(
 	{
 		{ "help", no_argument, 0, 'h' },
 		{ "version", no_argument, 0, 'v' },
+		{ "arch", required_argument, 0, 'a' },
 		{ "entry", required_argument, 0, 'e' },
 		{ "output", required_argument, 0, 'o' },
 		{ 0, 0, 0, 0 }
 	};
 
 	int32_t opt = -1;
-	while ((opt = (int32_t)getopt_long(argc, (char* const *)argv, "hve:o:", options, NULL)) != -1)
+	while ((opt = (int32_t)getopt_long(argc, (char* const *)argv, "hve:a:o:", options, NULL)) != -1)
 	{
 		switch (opt)
 		{
@@ -104,10 +108,14 @@ signed int main(
 				return 0;
 			} break;
 
+			case 'a':
+			{
+				arch = optarg;
+			} break;
+
 			case 'e':
 			{
 				entry = optarg;
-				break;
 			} break;
 
 			case 'o':
@@ -123,13 +131,17 @@ signed int main(
 		}
 	}
 
+	// TODO: handle these options:
+	(void)arch;
+	(void)entry;
+	(void)output;
+
 	const char** const sources = argv + (uint64_t)optind;
 	const uint64_t sources_count = (uint64_t)argc - (uint64_t)optind;
 
 	if (sources_count <= 0)
 	{
-		primec_logger_error("no source files were provided!");
-		usage(argv[0]);
+		primec_logger_error("no source files were provided - see '--help' for usage.");
 		return -1;
 	}
 
@@ -157,9 +169,6 @@ signed int main(
 
 		fclose(source_file);
 	}
-
-	printf("entry: %s\n", entry);
-	printf("output: %s\n", output);
 
 	return 0;
 }
