@@ -17,17 +17,18 @@
 #include <limits.h>
 #include <stdio.h>
 
-#define primec_utf8_max_size sizeof(uint32_t)
+typedef uint32_t utf8char_t;
+#define primec_utf8_max_size sizeof(utf8char_t)
 #define primec_utf8_invalid UINT32_MAX
 
-uint32_t primec_utf8_decode(
+utf8char_t primec_utf8_decode(
 	const char** const string);
 
-uint64_t primec_utf8_encode(
+uint8_t primec_utf8_encode(
 	char* const string,
-	uint32_t c);
+	utf8char_t c);
 
-uint32_t primec_utf8_get(
+utf8char_t primec_utf8_get(
 	FILE* const file);
 
 #endif

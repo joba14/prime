@@ -22,36 +22,36 @@
 
 static const char* g_token_type_to_string_map[] =
 {
-	[primec_token_type_keyword_let] = "let",
-	[primec_token_type_keyword_mut] = "mut",
+	[primec_token_type_keyword_alias] = "alias",
+	[primec_token_type_keyword_as] = "as",
+	[primec_token_type_keyword_break] = "break",
 	[primec_token_type_keyword_c8] = "c8",
-	[primec_token_type_keyword_i8] = "i8",
+	[primec_token_type_keyword_continue] = "continue",
+	[primec_token_type_keyword_elif] = "elif",
+	[primec_token_type_keyword_else] = "else",
+	[primec_token_type_keyword_enum] = "enum",
+	[primec_token_type_keyword_ext] = "ext",
+	[primec_token_type_keyword_f32] = "f32",
+	[primec_token_type_keyword_f64] = "f64",
+	[primec_token_type_keyword_func] = "func",
 	[primec_token_type_keyword_i16] = "i16",
 	[primec_token_type_keyword_i32] = "i32",
 	[primec_token_type_keyword_i64] = "i64",
-	[primec_token_type_keyword_u8] = "u8",
+	[primec_token_type_keyword_i8] = "i8",
+	[primec_token_type_keyword_if] = "if",
+	[primec_token_type_keyword_import] = "import",
+	[primec_token_type_keyword_inl] = "inl",
+	[primec_token_type_keyword_let] = "let",
+	[primec_token_type_keyword_loop] = "loop",
+	[primec_token_type_keyword_mut] = "mut",
+	[primec_token_type_keyword_return] = "return",
+	[primec_token_type_keyword_struct] = "struct",
 	[primec_token_type_keyword_u16] = "u16",
 	[primec_token_type_keyword_u32] = "u32",
 	[primec_token_type_keyword_u64] = "u64",
-	[primec_token_type_keyword_f32] = "f32",
-	[primec_token_type_keyword_f64] = "f64",
+	[primec_token_type_keyword_u8] = "u8",
 	[primec_token_type_keyword_unsafe] = "unsafe",
-	[primec_token_type_keyword_if] = "if",
-	[primec_token_type_keyword_elif] = "elif",
-	[primec_token_type_keyword_else] = "else",
-	[primec_token_type_keyword_loop] = "loop",
 	[primec_token_type_keyword_while] = "while",
-	[primec_token_type_keyword_break] = "break",
-	[primec_token_type_keyword_continue] = "continue",
-	[primec_token_type_keyword_return] = "return",
-	[primec_token_type_keyword_func] = "func",
-	[primec_token_type_keyword_inl] = "inl",
-	[primec_token_type_keyword_ext] = "ext",
-	[primec_token_type_keyword_enum] = "enum",
-	[primec_token_type_keyword_struct] = "struct",
-	[primec_token_type_keyword_alias] = "alias",
-	[primec_token_type_keyword_as] = "as",
-	[primec_token_type_keyword_import] = "import",
 
 	[primec_token_type_assign] = "=",
 	[primec_token_type_add_assign] = "+=",
@@ -117,15 +117,6 @@ _Static_assert(
 static int32_t compare_keyword_tokens(
 	const void* const left,
 	const void* const right);
-
-static int32_t compare_keyword_tokens(
-	const void* const left,
-	const void* const right)
-{
-	return primec_utils_strcmp(
-		*(const char**)left, *(const char**)right
-	);
-}
 
 primec_token_type_e primec_token_type_from_string(
 	const char* const string)
@@ -216,9 +207,9 @@ const char* primec_token_type_to_string(
 
 		default:
 		{
-			primec_debug_assert(
-				type < (sizeof(g_token_type_to_string_map) / sizeof(g_token_type_to_string_map[0])));
-			return g_token_type_to_string_map[type];
+			primec_debug_assert(type < (sizeof(g_token_type_to_string_map) / sizeof(g_token_type_to_string_map[0])));
+			const char* stringified_type = g_token_type_to_string_map[type];
+			return stringified_type;
 		} break;
 	}
 }
@@ -234,6 +225,18 @@ primec_token_s primec_token_from_parts(
 
 	token.type = type;
 	token.location = location;
+	return token;
+}
+
+primec_token_s primec_token_from_type(
+	const primec_token_type_e type)
+{
+	primec_token_s token;
+	primec_utils_memset(
+		(void* const)&token, 0, sizeof(primec_token_s)
+	);
+
+	token.type = type;
 	return token;
 }
 
@@ -267,4 +270,13 @@ const char* primec_token_to_string(
 	token_string_buffer[written] = 0;
 	#undef token_string_buffer_capacity
 	return token_string_buffer;
+}
+
+static int32_t compare_keyword_tokens(
+	const void* const left,
+	const void* const right)
+{
+	return primec_utils_strcmp(
+		*(const char**)left, *(const char**)right
+	);
 }

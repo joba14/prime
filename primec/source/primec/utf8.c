@@ -56,7 +56,7 @@ uint32_t primec_utf8_decode(
 
 	int64_t size = get_utf8_size(**s);
 
-	if (size == -1)
+	if (-1 == size)
 	{
 		++(*s);
 		return primec_utf8_invalid;
@@ -83,11 +83,11 @@ uint32_t primec_utf8_decode(
 	return cp;
 }
 
-uint64_t primec_utf8_encode(
+uint8_t primec_utf8_encode(
 	char* const string,
-	uint32_t c)
+	utf8char_t c)
 {
-	uint64_t length = 0;
+	uint8_t length;
 	uint8_t first;
 
 	if (c < 0x80)
@@ -111,7 +111,7 @@ uint64_t primec_utf8_encode(
 		length = 4;
 	}
 
-	for (uint64_t index = length - 1; index > 0; --index)
+	for (uint8_t index = length - 1; index > 0; --index)
 	{
 		string[index] = (char)((c & 0x3f) | 0x80);
 		c >>= 6;
@@ -121,7 +121,7 @@ uint64_t primec_utf8_encode(
 	return length;
 }
 
-uint32_t primec_utf8_get(
+utf8char_t primec_utf8_get(
 	FILE* const file)
 {
 	char buffer[primec_utf8_max_size];

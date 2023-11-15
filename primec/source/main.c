@@ -86,12 +86,11 @@ int32_t main(
 			source_file_path, source_file
 		);
 
-		primec_token_s token;
+		primec_token_s token = primec_token_from_type(primec_token_type_none);
 		while (primec_lexer_lex(&lexer, &token) != primec_token_type_none)
 		{
-			// primec_logger_info("%s", primec_token_type_to_string(token.type));
 			primec_logger_info("%s", primec_token_to_string(&token));
-			(void)getchar();
+			// (void)getchar();
 
 			if (token.type == primec_token_type_eof)
 			{

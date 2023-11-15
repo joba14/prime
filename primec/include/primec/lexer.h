@@ -13,6 +13,7 @@
 #ifndef __primec__include__primec__lexer_h__
 #define __primec__include__primec__lexer_h__
 
+#include <primec/utf8.h>
 #include <primec/token.h>
 
 #include <stdbool.h>
@@ -27,7 +28,7 @@ typedef struct
 	char* buffer;
 	uint64_t buffer_capacity;
 	uint64_t buffer_length;
-	uint32_t c[2];
+	utf8char_t c[2];
 	bool require_int;
 } primec_lexer_s;
 
