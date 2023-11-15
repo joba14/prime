@@ -22,17 +22,23 @@
 typedef struct
 {
 	FILE* file;
-	char buffer[256];
-	uint64_t buffer_length;
-	primec_token_s token;
 	primec_location_s location;
+	primec_token_s token;
+	char* buffer;
+	uint64_t buffer_capacity;
+	uint64_t buffer_length;
+	uint32_t c[2];
+	bool require_int;
 } primec_lexer_s;
 
 primec_lexer_s primec_lexer_from_parts(
 	const char* const file_path,
 	FILE* const file);
 
-primec_token_e primec_lexer_lex(
+void primec_lexer_destroy(
+	primec_lexer_s* const lexer);
+
+primec_token_type_e primec_lexer_lex(
 	primec_lexer_s* const lexer,
 	primec_token_s* const token);
 

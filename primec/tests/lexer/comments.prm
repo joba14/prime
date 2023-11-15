@@ -1,0 +1,10 @@
+// first single line comment
+  // second single line comment
+	// third  single line comment
+/* first multi line comment */
+/* second
+	multi line comment */
+/* third
+  multi line
+	comment
+*/

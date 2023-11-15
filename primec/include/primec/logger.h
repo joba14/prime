@@ -21,6 +21,13 @@ void primec_logger_log(
 	...) __attribute__ ((format (printf, 1, 2)));
 
 /**
+ * @brief Log debug level formattable messages.
+ */
+void primec_logger_debug(
+	const char* const format,
+	...) __attribute__ ((format (printf, 1, 2)));
+
+/**
  * @brief Log info level formattable messages.
  */
 void primec_logger_info(
@@ -39,6 +46,14 @@ void primec_logger_warn(
  * 
  */
 void primec_logger_error(
+	const char* const format,
+	...) __attribute__ ((format (printf, 1, 2)));
+
+/**
+ * @brief Log panic level formattable messages and exit with status -1.
+ * 
+ */
+void primec_logger_panic(
 	const char* const format,
 	...) __attribute__ ((format (printf, 1, 2)));
 

@@ -58,17 +58,15 @@ int32_t main(
 	const char* entry = "main";
 	const char* output = NULL;
 
-	{
-		const int32_t code = parse_command_line(argc, argv, &entry, &output);
-		if (code <= 0) { return code; }
-	}
+	const int32_t options_index = parse_command_line(argc, argv, &entry, &output);
+	if (options_index <= 0) { return options_index; }
 
-	const char** const source_files = argv + (uint64_t)optind;
-	const uint64_t source_files_count = (uint64_t)argc - (uint64_t)optind;
+	const char** const source_files = argv + (uint64_t)options_index;
+	const uint64_t source_files_count = (uint64_t)argc - (uint64_t)options_index;
 
 	if (source_files_count <= 0)
 	{
-		primec_logger_error("no source files were provided - see '--help' for usage.");
+		primec_logger_error("no source files were provided -- see '--help'.");
 		return -1;
 	}
 
@@ -88,14 +86,18 @@ int32_t main(
 			source_file_path, source_file
 		);
 
-		(void)lexer;
-		/*
 		primec_token_s token;
-		while (primec_lexer_lex(&lexer, &token) != primec_token_none)
+		while (primec_lexer_lex(&lexer, &token) != primec_token_type_none)
 		{
-			primec_logger_info("%lu", (uint64_t)token.type);
+			// primec_logger_info("%s", primec_token_type_to_string(token.type));
+			primec_logger_info("%s", primec_token_to_string(&token));
+			(void)getchar();
+
+			if (token.type == primec_token_type_eof)
+			{
+				break;
+			}
 		}
-		*/
 }
 #endif
 
@@ -122,7 +124,8 @@ static int32_t parse_command_line(
 	primec_debug_assert(entry != NULL);
 	primec_debug_assert(output != NULL);
 
-	static const struct option options[] =
+	typedef struct option option_s;
+	static const option_s options[] =
 	{
 		{ "help", no_argument, 0, 'h' },
 		{ "version", no_argument, 0, 'v' },
@@ -150,44 +153,81 @@ static int32_t parse_command_line(
 
 			case 'e':
 			{
-				*entry = optarg;
+				*entry = (const char*)optarg;
 			} break;
 
 			case 'o':
 			{
-				*output = optarg;
+				*output = (const char*)optarg;
 			} break;
 
 			default:
 			{
-				primec_logger_error("invalid command line option - see '--help' for usage.");
+				primec_logger_error("invalid command line option -- see '--help'.");
 				return -1;
 			} break;
 		}
 	}
 
-	return 1;
+	return (int32_t)optind;
 }
 
 static FILE* is_file_valid(
 	const char* const file_path)
 {
-	FILE* const source_file = fopen(file_path, "rt");
-	struct stat source_file_stats = {0};
+	typedef struct stat file_stats_s;
+	file_stats_s file_stats = {0};
 
-	if (source_file
-	 && (fstat(fileno(source_file), &source_file_stats) == 0)
-	 && (S_ISDIR(source_file_stats.st_mode) != 0))
+	if (stat(file_path, &file_stats) != 0)
 	{
-		primec_logger_error("unable to open %s for reading - it is a directory", file_path);
+		switch (errno)
+		{
+			case ENOENT:
+			{
+				primec_logger_error("unable to open %s for reading -- file not found", file_path);
+			} break;
+
+			case EACCES:
+			{
+				primec_logger_error("unable to open %s for reading -- permission denied", file_path);
+			} break;
+
+			case ENAMETOOLONG:
+			{
+				primec_logger_error("unable to open %s for reading -- path name exceeds the system-defined maximum length", file_path);
+			} break;
+
+			default:
+			{
+				primec_logger_error("unable to open %s for reading -- failed to stat", file_path);
+			} break;
+		}
+
 		return NULL;
 	}
 
-	if (!source_file)
+	if (S_ISDIR(file_stats.st_mode))
 	{
-		primec_logger_error("unable to open %s for reading - no such file", file_path);
+		primec_logger_error("unable to open %s for reading -- it is a directory", file_path);
 		return NULL;
 	}
 
-	return source_file;
+// TODO: review this block (7):
+#if support_reg_stat_mode
+	if (!S_ISREG(file_stats.st_mode))
+	{
+		primec_logger_error("unable to open %s for reading -- it is an irregular file", file_path);
+		return NULL;
+	}
+#endif
+
+	FILE* const file = fopen(file_path, "rt");
+
+	if (NULL == file)
+	{
+		primec_logger_error("unable to open %s for reading -- failed to open", file_path);
+		return NULL;
+	}
+
+	return file;
 }

@@ -26,11 +26,14 @@
 #define ANSI_RED    "\033[91m"
 #define ANSI_GREEN  "\033[92m"
 #define ANSI_YELLOW "\033[93m"
+#define ANSI_BROWN  "\033[33m"
 #define ANSI_RESET  "\033[0m"
 
+#define TAG_DEBUG "debug"
 #define TAG_INFO  "info"
 #define TAG_WARN  "warn"
 #define TAG_ERROR "error"
+#define TAG_PANIC "panic"
 
 static void log_with_tag(
 	FILE* const stream,
@@ -45,6 +48,16 @@ void primec_logger_log(
 	primec_debug_assert(format != NULL);
 	va_list args; va_start(args, format);
 	log_with_tag(stdout, NULL, format, args);
+	va_end(args);
+}
+
+void primec_logger_debug(
+	const char* const format,
+	...)
+{
+	primec_debug_assert(format != NULL);
+	va_list args; va_start(args, format);
+	log_with_tag(stdout, ANSI_BROWN TAG_DEBUG ANSI_RESET, format, args);
 	va_end(args);
 }
 
@@ -78,6 +91,17 @@ void primec_logger_error(
 	va_end(args);
 }
 
+void primec_logger_panic(
+	const char* const format,
+	...)
+{
+	primec_debug_assert(format != NULL);
+	va_list args; va_start(args, format);
+	log_with_tag(stderr, ANSI_RED TAG_PANIC ANSI_RESET, format, args);
+	va_end(args);
+	exit(-1);
+}
+
 static void log_with_tag(
 	FILE* const stream,
 	const char* const tag,
@@ -99,9 +123,9 @@ static void log_with_tag(
 	{
 		const bool is_space = ' ' == *buffer_iterator;
 		const bool is_newline = '\n' == *buffer_iterator;
-		const bool is_over_80_symbols = (uint64_t)(buffer_iterator - line_iterator) >= 80;
+		const bool is_over_120_symbols = (uint64_t)(buffer_iterator - line_iterator) >= 120;
 
-		if ((is_over_80_symbols && is_space) || is_newline)
+		if ((is_over_120_symbols && is_space) || is_newline)
 		{
 			if (NULL == tag)
 			{
