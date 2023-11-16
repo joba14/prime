@@ -90,7 +90,7 @@ int32_t main(
 		while (primec_lexer_lex(&lexer, &token) != primec_token_type_none)
 		{
 			primec_logger_info("%s", primec_token_to_string(&token));
-			// (void)getchar();
+			(void)getchar();
 
 			if (token.type == primec_token_type_eof)
 			{

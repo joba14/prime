@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 
 static void update_location(
@@ -201,6 +202,301 @@ static primec_token_type_e lex_identifier_or_keyword(
 	return token->type;
 }
 
+static uint64_t compute_exponent(
+	uint64_t n,
+	const uint64_t exponent,
+	const bool is_signed)
+{
+	if (n == 0)
+	{
+		return 0;
+	}
+
+	for (uint64_t index = 0; index < exponent; ++index)
+	{
+		const uint64_t old = n;
+		n *= 10;
+
+		if (n / 10 != old)
+		{
+			errno = ERANGE;
+			return INT64_MAX;
+		}
+	}
+
+	if (is_signed && n > (uint64_t)INT64_MIN)
+	{
+		errno = ERANGE;
+		return INT64_MAX;
+	}
+
+	return n;
+}
+
+static void lex_any_literal(
+	primec_lexer_s* const lexer,
+	primec_token_s* const out)
+{
+	enum
+	{
+		base_bin = 1, base_oct, base_hex, base_dec = 0x07, base_mask = base_dec
+	};
+
+	_Static_assert((base_bin | base_oct | base_hex | base_dec) == base_dec, "base_dec bits must be a superset of all other bases");
+
+	enum
+	{
+		flag_flt = 3, flag_exp, flag_suff, flag_dig
+	};
+
+	static const char chrs[][24] =
+	{
+		[base_bin] = "01",
+		[base_oct] = "01234567",
+		[base_dec] = "0123456789",
+		[base_hex] = "0123456789abcdefABCDEF"
+	};
+
+	static const char matching_states[0x80][6] =
+	{
+		['.'] = { base_dec, base_hex, 0 },
+		['e'] = { base_dec, base_dec | 1 << flag_flt, 0 },
+		['E'] = { base_dec, base_dec | 1 << flag_flt, 0 },
+		['p'] = { base_hex, base_hex | 1 << flag_flt, 0 },
+		['P'] = { base_hex, base_hex | 1 << flag_flt, 0 },
+		['+'] = { base_dec | 1 << flag_exp | 1 << flag_dig, base_dec | 1 << flag_flt | 1 << flag_exp | 1 << flag_dig, 0 },
+		['-'] = { base_dec | 1 << flag_exp | 1 << flag_dig, base_dec | 1 << flag_flt | 1 << flag_exp | 1 << flag_dig, 0 },
+		['i'] = { base_bin, base_oct, base_hex, base_dec, base_dec | 1 << flag_exp, 0 },
+		['u'] = { base_bin, base_oct, base_hex, base_dec, base_dec | 1 << flag_exp, 0 },
+		['f'] = { base_dec, base_dec | 1 << flag_flt, base_dec | 1 << flag_exp, base_dec | 1 << flag_flt | 1 << flag_exp, 0 },
+	};
+
+	int32_t state = base_dec;
+	int32_t base = 10;
+	int32_t old_state = base_dec;
+
+	utf8char_t c = next_utf8char(lexer, &out->location, true);
+	utf8char_t last = 0;
+
+	// TODO: make it not an assert?
+	primec_debug_assert(c != primec_utf8_invalid && c <= 0x7F && (isdigit(c) || '+' == c || '-' == c));
+
+	if (c == '0')
+	{
+		c = next_utf8char(lexer, NULL, true);
+
+		if (c <= 0x7F && isdigit(c))
+		{
+			log_lexer_error(out->location, "leading zero in base 10 literal");
+		}
+		else if ('b' == c)
+		{
+			state = base_bin | 1 << flag_dig;
+			base = 2;
+		}
+		else if ('o' == c)
+		{
+			state = base_oct | 1 << flag_dig;
+			base = 8;
+		}
+		else if ('x' == c)
+		{
+			state = base_hex | 1 << flag_dig;
+			base = 16;
+		}
+	}
+
+	if (state != base_dec)
+	{
+		last = c;
+		c = next_utf8char(lexer, NULL, true);
+	}
+
+	size_t exp = 0, suff = 0;
+
+	do
+	{
+		if (strchr(chrs[state & base_mask], (int32_t)c))
+		{
+			state &= ~(1 << flag_dig);
+			last = c;
+			continue;
+		}
+		else if (c > 0x7f || !strchr(matching_states[c], state))
+		{
+			goto end;
+		}
+
+		old_state = state;
+
+		switch (c)
+		{
+			case '.':
+			{
+				if (lexer->require_int)
+				{
+					goto want_int;
+				}
+
+				state |= 1 << flag_flt;
+			} break;
+
+			case '-':
+			case 'p':
+			case 'P':
+			{
+				state |= 1 << flag_flt;
+			} /* fallthrough */
+
+			case 'e':
+			case 'E':
+			case '+':
+			{
+				state |= base_dec | 1 << flag_exp;
+				exp = lexer->buffer_length - 1;
+			} break;
+
+			case 'f':
+			{
+				state |= 1 << flag_flt;
+			} /* fallthrough */
+
+			case 'i':
+			case 'u':
+			{
+				state |= base_dec | 1 << suff;
+				suff = lexer->buffer_length - 1;
+			} break;
+
+			default:
+			{
+				goto end;
+			} break;
+		}
+
+		if (state & 1 << flag_flt && lexer->require_int)
+		{
+			log_lexer_error(out->location, "expected integer literal");
+		}
+
+		last = c;
+		state |= 1 << flag_dig;
+	} while ((c = next_utf8char(lexer, NULL, true)) != primec_utf8_invalid);
+
+	last = 0;
+
+end:
+	if (last && !strchr("iu", (int32_t)last) && !strchr(chrs[state & base_mask], (int32_t)last))
+	{
+		state = old_state;
+		push_utf8char(lexer, c, true);
+		push_utf8char(lexer, last, true);
+	}
+	else if (c != primec_utf8_invalid)
+	{
+want_int:
+		push_utf8char(lexer, c, true);
+	}
+
+	lexer->require_int = false;
+
+	typedef enum
+	{
+		kind_unknown = -1, kind_iconst, kind_signed, kind_unsigned, kind_float
+	} kind_e;
+
+	kind_e kind = kind_unknown;
+
+	static const struct {
+		const char suff[4];
+		kind_e kind;
+		primec_token_type_e type;
+	} storages[] =
+	{
+		{ "f32", kind_float, primec_token_type_literal_f32 },
+		{ "f64", kind_float, primec_token_type_literal_f64 },
+		{ "i16", kind_signed, primec_token_type_literal_i16 },
+		{ "i32", kind_signed, primec_token_type_literal_i32 },
+		{ "i64", kind_signed, primec_token_type_literal_i64 },
+		{ "i8", kind_signed, primec_token_type_literal_i8 },
+		{ "u16", kind_unsigned, primec_token_type_literal_u16 },
+		{ "u32", kind_unsigned, primec_token_type_literal_u32 },
+		{ "u64", kind_unsigned, primec_token_type_literal_u64 },
+		{ "u8", kind_unsigned, primec_token_type_literal_u8 }
+	};
+
+	if (suff)
+	{
+		for (size_t i = 0; i < sizeof storages / sizeof storages[0]; i++)
+		{
+			if (!strcmp(storages[i].suff, lexer->buffer + suff))
+			{
+				out->type = storages[i].type;
+				kind = storages[i].kind;
+				break;
+			}
+		}
+
+		if (kind == kind_unknown)
+		{
+			log_lexer_error(out->location, "invalid suffix '%s'", lexer->buffer + suff);
+		}
+	}
+
+	if (state & 1 << flag_flt)
+	{
+		if (kind_unknown == kind)
+		{
+			out->type = primec_token_type_literal_f64;
+		}
+		else if (kind != kind_float)
+		{
+			log_lexer_error(out->location, "unexpected decimal point in integer literal");
+		}
+
+		out->f64 = strtod(lexer->buffer, NULL);
+		clear_buffer(lexer);
+		return;
+	}
+
+	if (kind == kind_unknown)
+	{
+		kind = kind_iconst;
+		out->type = primec_token_type_literal_i64;
+	}
+
+	uint64_t exponent = 0;
+	errno = 0;
+
+	if (exp != 0)
+	{
+		exponent = strtoumax(lexer->buffer + exp + 1, NULL, 10);
+	}
+
+	out->u64 = strtoumax(lexer->buffer + (base == 10 ? 0 : 2), NULL, base);
+	out->u64 = compute_exponent(out->u64, exponent, kind_signed == kind);
+
+	if (ERANGE == errno)
+	{
+		log_lexer_error(out->location, "integer literal overflow");
+	}
+
+	if (kind_iconst == kind && out->u64 > (uint64_t)INT64_MAX)
+	{
+		out->type = primec_token_type_literal_u64;
+	}
+	else if (kind_signed == kind && out->u64 == (uint64_t)INT64_MIN)
+	{
+		out->i64 = INT64_MIN;
+	}
+	else if (kind != kind_unsigned)
+	{
+		out->i64 = (int64_t)out->u64;
+	}
+
+	clear_buffer(lexer);
+}
+
 primec_lexer_s primec_lexer_from_parts(
 	const char* const file_path,
 	FILE* const file)
@@ -255,22 +551,32 @@ primec_token_type_e primec_lexer_lex(
 		return token->type;
 	}
 
-	/*
-	if (c <= 0x7F && isdigit(c))
+	if (c <= 0x7F && (isdigit(c) || '+' == c || '-' == c))
 	{
-		push(lexer, c, false);
-		lex_literal(lexer, token);
+		// TODO: remove(2):
+		primec_logger_info("1");
+		(void)getchar();
+
+		push_utf8char(lexer, c, false);
+		lex_any_literal(lexer, token);
 		return token->type;
 	}
 
+	// TODO: remove(2):
+	primec_logger_info("2");
+	(void)getchar();
+
 	lexer->require_int = false;
-	*/
 
 	if (c <= 0x7F && (isalpha(c) || c == '_'))
 	{
 		push_utf8char(lexer, c, false);
 		return lex_identifier_or_keyword(lexer, token);
 	}
+
+	// TODO: remove(3):
+	primec_logger_info("3");
+	(void)getchar();
 
 	/*
 	switch (c)
@@ -279,7 +585,7 @@ primec_token_type_e primec_lexer_lex(
 		case '`':
 		case '\'':
 		{
-			push(lexer, c, false);
+			push_utf8char(lexer, c, false);
 			return lex_string(lexer, token);
 		} break;
 

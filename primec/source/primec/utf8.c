@@ -12,6 +12,10 @@
 
 #include <primec/utf8.h>
 
+#include <primec/debug.h>
+
+#include <stddef.h>
+
 static const uint8_t g_masks[] =
 {
 	0x7F,
@@ -44,6 +48,7 @@ static int64_t get_utf8_size(
 uint32_t primec_utf8_decode(
 	const char** const string)
 {
+	primec_debug_assert(string != NULL);
 	const uint8_t** s = (const uint8_t**)string;
 	uint32_t cp = 0;
 
@@ -87,43 +92,45 @@ uint8_t primec_utf8_encode(
 	char* const string,
 	utf8char_t c)
 {
-	uint8_t length;
-	uint8_t first;
+	primec_debug_assert(string != NULL);
+	uint8_t length_minus_one, first;
 
 	if (c < 0x80)
 	{
 		first = 0;
-		length = 1;
+		length_minus_one = 0;
 	}
 	else if (c < 0x800)
 	{
 		first = 0xc0;
-		length = 2;
+		length_minus_one = 1;
 	}
 	else if (c < 0x10000)
 	{
 		first = 0xe0;
-		length = 3;
+		length_minus_one = 2;
 	}
 	else
 	{
 		first = 0xf0;
-		length = 4;
+		length_minus_one = 3;
 	}
 
-	for (uint8_t index = length - 1; index > 0; --index)
+	for (uint8_t index = length_minus_one; index > 0; --index)
 	{
 		string[index] = (char)((c & 0x3f) | 0x80);
 		c >>= 6;
 	}
 
+	++length_minus_one; // NOTE: increasing to the actual length.
 	string[0] = (char)(c | first);
-	return length;
+	return length_minus_one;
 }
 
 utf8char_t primec_utf8_get(
 	FILE* const file)
 {
+	primec_debug_assert(file != NULL);
 	char buffer[primec_utf8_max_size];
 	const int32_t c = fgetc(file);
 
