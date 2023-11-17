@@ -78,10 +78,8 @@ int32_t main(
 		FILE* const source_file = is_file_valid(source_file_path);
 		if (!source_file) { continue; }
 
-		primec_logger_info("file %s if good to go!", source_file_path);
-
 #if 1
-{ // TODO: parse the source file here!
+{
 		primec_lexer_s lexer = primec_lexer_from_parts(
 			source_file_path, source_file
 		);
@@ -89,10 +87,11 @@ int32_t main(
 		primec_token_s token = primec_token_from_type(primec_token_type_none);
 		while (primec_lexer_lex(&lexer, &token) != primec_token_type_none)
 		{
-			primec_logger_info("%s", primec_token_to_string(&token));
-			(void)getchar();
+			primec_logger_log(primec_token_to_string(&token));
+			// (void)getchar();
 
-			if (token.type == primec_token_type_eof)
+			if (primec_token_type_eof == token.type
+			 || primec_token_type_none == token.type)
 			{
 				break;
 			}

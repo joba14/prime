@@ -400,6 +400,10 @@ want_int:
 
 	lexer->require_int = false;
 
+	// TODO: remove (2):
+	primec_logger_log("1");
+	(void)getchar();
+
 	typedef enum
 	{
 		kind_unknown = -1, kind_iconst, kind_signed, kind_unsigned, kind_float
@@ -407,11 +411,12 @@ want_int:
 
 	kind_e kind = kind_unknown;
 
-	static const struct {
+	static const struct
+	{
 		const char suff[4];
 		kind_e kind;
 		primec_token_type_e type;
-	} storages[] =
+	} literals[] =
 	{
 		{ "f32", kind_float, primec_token_type_literal_f32 },
 		{ "f64", kind_float, primec_token_type_literal_f64 },
@@ -427,12 +432,12 @@ want_int:
 
 	if (suff)
 	{
-		for (size_t i = 0; i < sizeof storages / sizeof storages[0]; i++)
+		for (uint8_t index = 0; index < (sizeof(literals) / sizeof(literals[0])); ++index)
 		{
-			if (!strcmp(storages[i].suff, lexer->buffer + suff))
+			if (!strcmp(literals[index].suff, lexer->buffer + suff))
 			{
-				out->type = storages[i].type;
-				kind = storages[i].kind;
+				out->type = literals[index].type;
+				kind = literals[index].kind;
 				break;
 			}
 		}
@@ -442,6 +447,10 @@ want_int:
 			log_lexer_error(out->location, "invalid suffix '%s'", lexer->buffer + suff);
 		}
 	}
+
+	// TODO: remove (2):
+	primec_logger_log("2");
+	(void)getchar();
 
 	if (state & 1 << flag_flt)
 	{
@@ -455,9 +464,17 @@ want_int:
 		}
 
 		out->f64 = strtod(lexer->buffer, NULL);
+
+		out->source.data = primec_utils_strdup(lexer->buffer);
+		out->source.length = lexer->buffer_length;
+
 		clear_buffer(lexer);
 		return;
 	}
+
+	// TODO: remove (2):
+	primec_logger_log("3");
+	(void)getchar();
 
 	if (kind == kind_unknown)
 	{
@@ -494,7 +511,406 @@ want_int:
 		out->i64 = (int64_t)out->u64;
 	}
 
+	// TODO: remove (2):
+	primec_logger_log("4");
+	primec_logger_log("%s", lexer->buffer);
+	primec_logger_log("%.*s", (signed int)lexer->buffer_length, lexer->buffer);
+	(void)getchar();
+
+	out->source.data = primec_utils_strdup(lexer->buffer);
+	out->source.length = lexer->buffer_length;
 	clear_buffer(lexer);
+}
+
+static primec_token_type_e lex_up_to_2_symbol_token(
+	primec_lexer_s* const lexer,
+	primec_token_s* const out,
+	utf8char_t c)
+{
+	primec_debug_assert(lexer != NULL);
+	primec_debug_assert(out != NULL);
+
+	// TODO: make it not an assert?
+	primec_debug_assert(c != primec_utf8_invalid);
+
+	switch (c)
+	{
+		case '.':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '.':
+				{
+					out->type = primec_token_type_double_dot;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_dot;
+					lexer->require_int = true;
+				} break;
+			}
+		} break;
+
+		case '*':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_multiply_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_star;
+				} break;
+			}
+		} break;
+
+		case '%':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_modulus_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_modulus;
+				} break;
+			}
+		} break;
+
+		case '/':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_divide_assign;
+				} break;
+
+				/*
+				case '/':
+				{
+					out->type = primec_token_type_single_line_comment;
+
+					// TODO: implement!
+						while ((c = next_utf8char(lexer, NULL, false)) != primec_utf8_invalid && c != '\n');
+						return lex(lexer, out);
+				} return;
+				*/
+
+				/*
+				case '*':
+				{
+					// TODO: implement!
+				} return;
+				*/
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_divide;
+				} break;
+			}
+		} break;
+
+		case '+':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_add_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_add;
+				} break;
+			}
+		} break;
+
+		case '-':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_subtract_assign;
+				} break;
+
+				case '>':
+				{
+					out->type = primec_token_type_arrow;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_subtract;
+				} break;
+			}
+		} break;
+
+		case ':':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case ':':
+				{
+					out->type = primec_token_type_double_colon;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_colon;
+				} break;
+			}
+		} break;
+
+		case '!':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_not_equal;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_lnot;
+				} break;
+			}
+		} break;
+
+		case '=':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '=':
+				{
+					out->type = primec_token_type_less_than_or_equal;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_equal;
+				} break;
+			}
+		} break;
+
+		default:
+		{
+			// NOTE: Should never ever happen as this function will get symbols
+			// that are already verified to be correct ones!
+			primec_debug_assert(0); // Sanity check for developers.
+		} break;
+	}
+
+	return out->type;
+}
+
+static primec_token_type_e lex_up_to_3_symbol_token(
+	primec_lexer_s* const lexer,
+	primec_token_s* const out,
+	uint32_t c)
+{
+	primec_debug_assert(lexer != NULL);
+	primec_debug_assert(out != NULL);
+
+	// TODO: make it not an assert?
+	primec_debug_assert(c != primec_utf8_invalid);
+
+	switch (c)
+	{
+		case '<':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '<':
+				{
+					switch ((c = next_utf8char(lexer, NULL, false)))
+					{
+						case '=':
+						{
+							out->type = primec_token_type_lshift_assign;
+						} break;
+
+						default:
+							push_utf8char(lexer, c, false);
+							out->type = primec_token_type_lshift;
+						} break;
+				} break;
+
+				case '=':
+				{
+					out->type = primec_token_type_less_than_or_equal;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_less_than;
+				} break;
+			}
+		} break;
+
+		case '>':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '>':
+				{
+					switch ((c = next_utf8char(lexer, NULL, false)))
+					{
+						case '=':
+						{
+							out->type = primec_token_type_rshift_assign;
+						} break;
+
+						default:
+						{
+							push_utf8char(lexer, c, false);
+							out->type = primec_token_type_rshift;
+						} break;
+					}
+				} break;
+
+				case '=':
+				{
+					out->type = primec_token_type_greater_than_or_equal;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_greater_than;
+				} break;
+			}
+		} break;
+
+		case '&':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '&':
+				{
+					switch ((c = next_utf8char(lexer, NULL, false)))
+					{
+						case '=':
+						{
+							out->type = primec_token_type_land_assign;
+						} break;
+
+						default:
+						{
+							push_utf8char(lexer, c, false);
+							out->type = primec_token_type_land;
+						} break;
+					}
+				} break;
+
+				case '=':
+				{
+					out->type = primec_token_type_band_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_band;
+				} break;
+			}
+		} break;
+
+		case '|':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '|':
+				{
+					switch ((c = next_utf8char(lexer, NULL, false)))
+					{
+					case '=':
+						out->type = primec_token_type_lor_assign;
+						break;
+
+					default:
+						push_utf8char(lexer, c, false);
+						out->type = primec_token_type_lor;
+						break;
+					}
+				} break;
+
+				case '=':
+				{
+					out->type = primec_token_type_bor_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_bor;
+				} break;
+			}
+		} break;
+
+		case '^':
+		{
+			switch ((c = next_utf8char(lexer, NULL, false)))
+			{
+				case '^':
+				{
+					switch ((c = next_utf8char(lexer, NULL, false)))
+					{
+						case '=':
+						{
+							out->type = primec_token_type_lxor_assign;
+						} break;
+
+						default:
+						{
+							push_utf8char(lexer, c, false);
+							out->type = primec_token_type_lxor;
+						} break;
+					}
+				} break;
+
+				case '=':
+				{
+					out->type = primec_token_type_bxor_assign;
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, c, false);
+					out->type = primec_token_type_bxor;
+				} break;
+			}
+		} break;
+
+		default:
+		{
+			// NOTE: Should never ever happen as this function will get symbols
+			// that are already verified to be correct ones!
+			primec_debug_assert(0); // Sanity check for developers.
+		} break;
+	}
+
+	return out->type;
 }
 
 primec_lexer_s primec_lexer_from_parts(
@@ -525,7 +941,7 @@ void primec_lexer_destroy(
 	primec_lexer_s* const lexer)
 {
 	primec_utils_free(lexer->buffer);
-	memset((void*)lexer, 0, sizeof(primec_lexer_s));
+	(void)memset((void*)lexer, 0, sizeof(primec_lexer_s));
 }
 
 primec_token_type_e primec_lexer_lex(
@@ -546,27 +962,28 @@ primec_token_type_e primec_lexer_lex(
 
 	if (primec_utf8_invalid == c)
 	{
-		token->type = primec_token_type_eof;
-		token->source.length = 0;
+		lexer->token.type = primec_token_type_eof;
+		lexer->token.source.length = 0;
+		*token = lexer->token;
 		return token->type;
 	}
 
+	/*
 	if (c <= 0x7F && (isdigit(c) || '+' == c || '-' == c))
 	{
-		// TODO: remove(2):
-		primec_logger_info("1");
-		(void)getchar();
-
 		push_utf8char(lexer, c, false);
 		lex_any_literal(lexer, token);
 		return token->type;
 	}
 
-	// TODO: remove(2):
-	primec_logger_info("2");
-	(void)getchar();
-
 	lexer->require_int = false;
+	*/
+
+	// TODO: remove(4):
+	if (0)
+	{
+		lex_any_literal(NULL, NULL);
+	}
 
 	if (c <= 0x7F && (isalpha(c) || c == '_'))
 	{
@@ -574,13 +991,9 @@ primec_token_type_e primec_lexer_lex(
 		return lex_identifier_or_keyword(lexer, token);
 	}
 
-	// TODO: remove(3):
-	primec_logger_info("3");
-	(void)getchar();
-
-	/*
 	switch (c)
 	{
+/*
 		case '"':
 		case '`':
 		case '\'':
@@ -588,27 +1001,28 @@ primec_token_type_e primec_lexer_lex(
 			push_utf8char(lexer, c, false);
 			return lex_string(lexer, token);
 		} break;
+*/
 
-		case '.': // . .. ...
 		case '<': // < << <= <<=
 		case '>': // > >> >= >>=
 		case '&': // & && &= &&=
 		case '|': // | || |= ||=
 		case '^': // ^ ^^ ^= ^^=
 		{
-			return lex3(lexer, token, c);
+			return lex_up_to_3_symbol_token(lexer, token, c);
 		} break;
 
+		case '.': // . ..
 		case '*': // * *=
 		case '%': // % %=
-		case '/': // / /= //
+		case '/': // / /= // /*
 		case '+': // + +=
 		case '-': // - -=
 		case ':': // : ::
 		case '!': // ! !=
 		case '=': // = == =>
 		{
-			return lex2(lexer, token, c);
+			return lex_up_to_2_symbol_token(lexer, token, c);
 		} break;
 
 		case '~':
@@ -658,12 +1072,9 @@ primec_token_type_e primec_lexer_lex(
 
 		default:
 		{
-			// primec_logger_panic("%s:%lu:%lu: syntax error: unexpected codepoint '%s'\n",
-			// 	lexer->location.file, lexer->location.line,
-			// 	lexer->location.column, rune_unparse(c));
+			token->type = primec_token_type_invalid;
 		} break;
 	}
-	*/
 
 	return token->type;
 }

@@ -200,15 +200,26 @@ const char* primec_token_type_to_string(
 			return "literal_str";
 		} break;
 
+		case primec_token_type_invalid:
+		{
+			return "invalid";
+		} break;
+
 		case primec_token_type_eof:
 		{
 			return "eof";
 		} break;
 
+		case primec_token_type_none:
+		{
+			return "none";
+		} break;
+
 		default:
 		{
 			primec_debug_assert(type < (sizeof(g_token_type_to_string_map) / sizeof(g_token_type_to_string_map[0])));
-			const char* stringified_type = g_token_type_to_string_map[type];
+			const char* const stringified_type = (const char* const)g_token_type_to_string_map[type];
+			primec_debug_assert(stringified_type != NULL);
 			return stringified_type;
 		} break;
 	}

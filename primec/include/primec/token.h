@@ -139,6 +139,7 @@ typedef enum
 	primec_token_type_identifier,
 
 	// Magic tokens
+	primec_token_type_invalid,
 	primec_token_type_eof,
 	primec_token_type_none
 } primec_token_type_e;
