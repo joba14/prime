@@ -13,6 +13,7 @@
 #ifndef __primec__include__primec__token_h__
 #define __primec__include__primec__token_h__
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct
@@ -168,18 +169,6 @@ typedef struct
 		uint64_t u64;
 		float f32;
 		long double f64;
-
-		/* [[deprecated]] */ struct
-		{
-			char* data;
-			uint64_t length;
-		} str;
-
-		/* [[deprecated]] */ struct
-		{
-			char* data;
-			uint64_t length;
-		} ident;
 	};
 
 	struct
@@ -187,6 +176,8 @@ typedef struct
 		char* data;
 		uint64_t length;
 	} source;
+
+	bool has_source;
 } primec_token_s;
 
 primec_token_s primec_token_from_parts(

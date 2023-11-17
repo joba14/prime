@@ -230,12 +230,12 @@ primec_token_s primec_token_from_parts(
 	const primec_location_s location)
 {
 	primec_token_s token;
-	primec_utils_memset(
-		(void* const)&token, 0, sizeof(primec_token_s)
-	);
-
 	token.type = type;
 	token.location = location;
+
+	token.source.data = NULL;
+	token.source.length = 0;
+	token.has_source = false;
 	return token;
 }
 
@@ -243,11 +243,15 @@ primec_token_s primec_token_from_type(
 	const primec_token_type_e type)
 {
 	primec_token_s token;
-	primec_utils_memset(
-		(void* const)&token, 0, sizeof(primec_token_s)
-	);
-
 	token.type = type;
+
+	token.location.file = NULL;
+	token.location.line = 0;
+	token.location.column = 0;
+
+	token.source.data = NULL;
+	token.source.length = 0;
+	token.has_source = false;
 	return token;
 }
 
@@ -255,10 +259,21 @@ void primec_token_destroy(
 	primec_token_s* const token)
 {
 	primec_debug_assert(token != NULL);
-	primec_utils_free(token->source.data);
-	primec_utils_memset(
-		(void* const)&token, 0, sizeof(primec_token_s)
-	);
+
+	if (token->has_source)
+	{
+		primec_utils_free(token->source.data);
+	}
+
+	token->type = primec_token_type_none;
+
+	token->location.file = NULL;
+	token->location.line = 0;
+	token->location.column = 0;
+
+	token->source.data = NULL;
+	token->source.length = 0;
+	token->has_source = false;
 }
 
 const char* primec_token_to_string(
@@ -268,18 +283,31 @@ const char* primec_token_to_string(
 	#define token_string_buffer_capacity 1024
 	static char token_string_buffer[token_string_buffer_capacity + 1];
 	token_string_buffer[0] = 0;
+	uint64_t written = 0;
 
-	const uint64_t written = (uint64_t)snprintf(
+	written = (uint64_t)snprintf(
 		token_string_buffer, token_string_buffer_capacity,
-		"Token[type=`%s`, location=`" primec_location_fmt "`, source=`%.*s`]",
+		"Token[type=`%s`, location=`" primec_location_fmt "`, has_source=`%s`",
 		primec_token_type_to_string(token->type),
 		primec_location_arg(token->location),
-		(signed int)token->source.length,
-		token->source.data
+		token->has_source ? "true" : "false"
 	);
 
+	if (token->has_source)
+	{
+		written += (uint64_t)snprintf(
+			token_string_buffer + written, token_string_buffer_capacity - written,
+			", source=`%.*s`]", (signed int)token->source.length, token->source.data
+		);
+	}
+	else
+	{
+		written += (uint64_t)snprintf(
+			token_string_buffer + written, token_string_buffer_capacity - written, "]"
+		);
+	}
+
 	token_string_buffer[written] = 0;
-	#undef token_string_buffer_capacity
 	return token_string_buffer;
 }
 
