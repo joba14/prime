@@ -31,10 +31,10 @@ static const char* const g_usage_banner =
 	"usage: %s [options] <files...>\n"
 	"\n"
 	"options:\n"
-	"    -h, --help          print the help message\n"
-	"    -v, --version       print version and exit\n"
-	"    -e, --entry         set the entry symbol\n"
-	"    -o, --output        set output file name\n"
+	"    -h, --help                 print the help message\n"
+	"    -v, --version              print version and exit\n"
+	"    -e, --entry <symbol>       set the entry symbol\n"
+	"    -o, --output <path>        set output file name\n"
 	"\n"
 	"notice:\n"
 	"    this executable is distributed under the \"prime gplv1\" license.\n";
@@ -85,7 +85,7 @@ int32_t main(
 		);
 
 		primec_token_s token = primec_token_from_type(primec_token_type_none);
-		while (primec_lexer_lex(&lexer, &token) && !primec_lexer_should_stop_lexing(token.type))
+		while (!primec_lexer_should_stop_lexing(primec_lexer_lex(&lexer, &token)))
 		{
 			primec_logger_log(primec_token_to_string(&token));
 			primec_token_destroy(&token);

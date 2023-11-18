@@ -1,0 +1,6 @@
+
+1. Finish the lexer (literals, tokens, etc)
+2. Implement a unit testing framework
+3. Create tests for the lexer and pass all of them
+4. Implement the parser (which uses the lexer) and AST
+*. ...
