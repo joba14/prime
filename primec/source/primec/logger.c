@@ -119,28 +119,12 @@ static void log_with_tag(
 	logging_buffer[length] = 0;
 	#undef logging_buffer_capacity
 
-	for (const char* buffer_iterator = logging_buffer, *line_iterator = logging_buffer; *buffer_iterator; ++buffer_iterator)
+	if (NULL == tag)
 	{
-		const bool is_space = ' ' == *buffer_iterator;
-		const bool is_newline = '\n' == *buffer_iterator;
-		const bool is_over_120_symbols = (uint64_t)(buffer_iterator - line_iterator) >= 120;
-
-		if ((is_over_120_symbols && is_space) || is_newline)
-		{
-			if (NULL == tag)
-			{
-				(void)fprintf(stream, "%.*s\n",
-					(signed int)(buffer_iterator - line_iterator), line_iterator
-				);
-			}
-			else
-			{
-				(void)fprintf(stream, "%s: %.*s\n",
-					tag, (signed int)(buffer_iterator - line_iterator), line_iterator
-				);
-			}
-
-			line_iterator = buffer_iterator + 1;
-		}
+		(void)fprintf(stream, "%.*s", (signed int)length, logging_buffer);
+	}
+	else
+	{
+		(void)fprintf(stream, "%s: %.*s", tag, (signed int)length, logging_buffer);
 	}
 }

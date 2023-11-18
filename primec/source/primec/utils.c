@@ -64,6 +64,17 @@ char* primec_utils_strdup(
 	return result;
 }
 
+char* primec_utils_strndup(
+	const char* const string,
+	const uint64_t length)
+{
+	primec_debug_assert(string != NULL);
+	primec_debug_assert(length > 0);
+	char* result = strndup(string, length);
+	if (!result) { primec_logger_panic("internal failure -- failed to duplicate (and allocate) string"); }
+	return result;
+}
+
 int32_t primec_utils_strcmp(
 	const char* const left,
 	const char* const right)

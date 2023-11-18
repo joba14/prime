@@ -39,9 +39,24 @@ primec_lexer_s primec_lexer_from_parts(
 void primec_lexer_destroy(
 	primec_lexer_s* const lexer);
 
+/**
+ * @brief Lex next token from the file source.
+ * 
+ * @warning Once the lexer reaches the end of file token it will keep returning it!
+ * It is left for the user of this function to handle this case.
+ * 
+ * @note The easiest way to do this is to check if a returned token has  either the
+ * "primec_token_type_none" type or "primec_token_type_eof" type and stop lexing if
+ * that happens. I have added a helper function just for this - to verify the token
+ * and determine if one needs to stop lexing or not:
+ * see @ref primec_lexer_should_stop_lexing()
+ */
 primec_token_type_e primec_lexer_lex(
 	primec_lexer_s* const lexer,
 	primec_token_s* const token);
+
+bool primec_lexer_should_stop_lexing(
+	const primec_token_type_e type);
 
 void primec_lexer_unlex(
 	primec_lexer_s* const lexer,

@@ -158,6 +158,11 @@ typedef struct
 
 	union
 	{
+		struct
+		{
+			char* data;
+			uint64_t length;
+		} comment;
 		char c8;
 		int8_t i8;
 		int16_t i16;
@@ -169,15 +174,22 @@ typedef struct
 		uint64_t u64;
 		float f32;
 		long double f64;
+		struct
+		{
+			char* data;
+			uint64_t length;
+		} str;
+		struct
+		{
+			char* data;
+			uint64_t length;
+		} ident;
+		struct
+		{
+			char* data;
+			uint64_t length;
+		} invalid;
 	};
-
-	struct
-	{
-		char* data;
-		uint64_t length;
-	} source;
-
-	bool has_source;
 } primec_token_s;
 
 primec_token_s primec_token_from_parts(

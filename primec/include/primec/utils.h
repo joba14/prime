@@ -33,6 +33,10 @@ void primec_utils_memset(
 char* primec_utils_strdup(
 	const char* const string);
 
+char* primec_utils_strndup(
+	const char* const string,
+	const uint64_t length);
+
 int32_t primec_utils_strcmp(
 	const char* const left,
 	const char* const right);
