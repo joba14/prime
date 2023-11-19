@@ -176,22 +176,22 @@ static FILE* is_file_valid(
 		{
 			case ENOENT:
 			{
-				primec_logger_error("unable to open %s for reading -- file not found", file_path);
+				primec_logger_error("unable to open %s for reading -- file not found.", file_path);
 			} break;
 
 			case EACCES:
 			{
-				primec_logger_error("unable to open %s for reading -- permission denied", file_path);
+				primec_logger_error("unable to open %s for reading -- permission denied.", file_path);
 			} break;
 
 			case ENAMETOOLONG:
 			{
-				primec_logger_error("unable to open %s for reading -- path name exceeds the system-defined maximum length", file_path);
+				primec_logger_error("unable to open %s for reading -- path name exceeds the system-defined maximum length.", file_path);
 			} break;
 
 			default:
 			{
-				primec_logger_error("unable to open %s for reading -- failed to stat", file_path);
+				primec_logger_error("unable to open %s for reading -- failed to stat.", file_path);
 			} break;
 		}
 
@@ -200,7 +200,7 @@ static FILE* is_file_valid(
 
 	if (S_ISDIR(file_stats.st_mode))
 	{
-		primec_logger_error("unable to open %s for reading -- it is a directory", file_path);
+		primec_logger_error("unable to open %s for reading -- it is a directory.", file_path);
 		return NULL;
 	}
 
@@ -208,7 +208,7 @@ static FILE* is_file_valid(
 
 	if (NULL == file)
 	{
-		primec_logger_error("unable to open %s for reading -- failed to open", file_path);
+		primec_logger_error("unable to open %s for reading -- failed to open.", file_path);
 		return NULL;
 	}
 

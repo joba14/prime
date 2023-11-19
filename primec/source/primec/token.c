@@ -320,7 +320,7 @@ const char* primec_token_to_string(
 		{
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", single_line_comment=`%.*s`]", (signed int)token->comment.length, token->comment.data
+				", value=`%.*s`]", (signed int)token->comment.length, token->comment.data
 			);
 		} break;
 
@@ -328,7 +328,7 @@ const char* primec_token_to_string(
 		{
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", multi_line_comment=`%.*s`]", (signed int)token->comment.length, token->comment.data
+				", value=`%.*s`]", (signed int)token->comment.length, token->comment.data
 			);
 		} break;
 
@@ -339,17 +339,95 @@ const char* primec_token_to_string(
 
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", literal_rune=`%.*s`]", (signed int)rune_buffer_length, rune_buffer
+				", value=`%.*s`]", (signed int)rune_buffer_length, rune_buffer
 			);
 		} break;
 
-		// TODO: other literals!
+		case primec_token_type_literal_i8:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%li`]", (int64_t)token->i8
+			);
+		} break;
+
+		case primec_token_type_literal_i16:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%li`]", (int64_t)token->i16
+			);
+		} break;
+
+		case primec_token_type_literal_i32:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%li`]", (int64_t)token->i32
+			);
+		} break;
+
+		case primec_token_type_literal_i64:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%li`]", (int64_t)token->i64
+			);
+		} break;
+
+		case primec_token_type_literal_u8:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%lu`]", (uint64_t)token->u8
+			);
+		} break;
+
+		case primec_token_type_literal_u16:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%lu`]", (uint64_t)token->u16
+			);
+		} break;
+
+		case primec_token_type_literal_u32:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%lu`]", (uint64_t)token->u32
+			);
+		} break;
+
+		case primec_token_type_literal_u64:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%lu`]", (uint64_t)token->u64
+			);
+		} break;
+
+		case primec_token_type_literal_f32:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%f`]", token->f32
+			);
+		} break;
+
+		case primec_token_type_literal_f64:
+		{
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", value=`%Lf`]", token->f64
+			);
+		} break;
 
 		case primec_token_type_literal_str:
 		{
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", literal_str=`%.*s`]", (signed int)token->str.length, token->str.data
+				", value=`%.*s`]", (signed int)token->str.length, token->str.data
 			);
 		} break;
 
@@ -357,7 +435,7 @@ const char* primec_token_to_string(
 		{
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", identifier=`%.*s`]", (signed int)token->ident.length, token->ident.data
+				", value=`%.*s`]", (signed int)token->ident.length, token->ident.data
 			);
 		} break;
 
@@ -365,7 +443,7 @@ const char* primec_token_to_string(
 		{
 			written += (uint64_t)snprintf(
 				token_string_buffer + written, token_string_buffer_capacity - written,
-				", invalid=`%.*s`]", (signed int)token->invalid.length, token->invalid.data
+				", value=`%.*s`]", (signed int)token->invalid.length, token->invalid.data
 			);
 		} break;
 	

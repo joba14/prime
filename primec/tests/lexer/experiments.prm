@@ -1,4 +1,5 @@
 
+/*
 // Here is ^ a variable of type i64
 let variable: mut i64 = 0;
 
@@ -13,3 +14,9 @@ let variable: mut i64 = 0;
 'A'
 'A'
 '\t'
+*/
+
+
+-128i8
+-127i8
+127i8
