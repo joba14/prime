@@ -82,7 +82,7 @@ static primec_token_type_e lex_identifier_or_keyword(
 
 static bool lex_numeric_literal_token(
 	primec_lexer_s* const lexer,
-	primec_token_s* const out);
+	primec_token_s* const token);
 
 static uint8_t lex_possible_rune(
 	primec_lexer_s* const lexer,
@@ -479,10 +479,10 @@ static primec_token_type_e lex_identifier_or_keyword(
 
 static bool lex_numeric_literal_token(
 	primec_lexer_s* const lexer,
-	primec_token_s* const out)
+	primec_token_s* const token)
 {
 	primec_debug_assert(lexer != NULL);
-	primec_debug_assert(out != NULL);
+	primec_debug_assert(token != NULL);
 
 	enum
 	{
@@ -524,7 +524,7 @@ static bool lex_numeric_literal_token(
 	int32_t base = 10;
 	int32_t old_state = base_dec;
 
-	utf8char_t utf8char = next_utf8char(lexer, &out->location, true);
+	utf8char_t utf8char = next_utf8char(lexer, &token->location, true);
 	utf8char_t last = 0;
 
 	// NOTE: Should never ever happen as this function will get symbols
@@ -547,14 +547,14 @@ static bool lex_numeric_literal_token(
 
 		if (utf8char <= 0x7F && isdigit(utf8char))
 		{
-			log_lexer_error(out->location, "leading zero in base 10 literal.");
+			log_lexer_error(token->location, "leading zero in base 10 literal.");
 		}
 
 		if ('b' == utf8char)
 		{
 			if (sign_symbol != '\0')
 			{
-				log_lexer_error(out->location, "sign cannot prefix binary literal.");
+				log_lexer_error(token->location, "sign cannot prefix binary literal.");
 			}
 
 			state = base_bin | 1 << flag_dig;
@@ -564,7 +564,7 @@ static bool lex_numeric_literal_token(
 		{
 			if (sign_symbol != '\0')
 			{
-				log_lexer_error(out->location, "sign cannot prefix octal literal.");
+				log_lexer_error(token->location, "sign cannot prefix octal literal.");
 			}
 
 			state = base_oct | 1 << flag_dig;
@@ -574,7 +574,7 @@ static bool lex_numeric_literal_token(
 		{
 			if (sign_symbol != '\0')
 			{
-				log_lexer_error(out->location, "sign cannot prefix hex literal.");
+				log_lexer_error(token->location, "sign cannot prefix hex literal.");
 			}
 
 			state = base_hex | 1 << flag_dig;
@@ -644,7 +644,7 @@ static bool lex_numeric_literal_token(
 
 		if (state & 1 << flag_flt && lexer->require_int)
 		{
-			log_lexer_error(out->location, "expected integer literal.");
+			log_lexer_error(token->location, "expected integer literal.");
 		}
 
 		last = utf8char;
@@ -700,7 +700,7 @@ want_int:
 		{
 			if (!primec_utils_strcmp(literals[index].suffix, lexer->buffer + suffix_start))
 			{
-				out->type = literals[index].type;
+				token->type = literals[index].type;
 				kind = literals[index].kind;
 				break;
 			}
@@ -708,7 +708,7 @@ want_int:
 
 		if (kind_unknown == kind)
 		{
-			log_lexer_error(out->location, "invalid suffix '%s'.", lexer->buffer + suffix_start);
+			log_lexer_error(token->location, "invalid suffix '%s'.", lexer->buffer + suffix_start);
 		}
 	}
 	else
@@ -724,59 +724,59 @@ want_int:
 		case kind_i8:
 		{
 			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
-			out->i8 = (int8_t)value;
+			token->i8 = (int8_t)value;
 		} break;
 
 		case kind_i16:
 		{
 			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
-			out->i16 = (int16_t)value;
+			token->i16 = (int16_t)value;
 		} break;
 
 		case kind_i32:
 		{
 			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
-			out->i32 = (int32_t)value;
+			token->i32 = (int32_t)value;
 		} break;
 
 		case kind_i64:
 		{
 			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
-			out->i64 = (int64_t)value;
+			token->i64 = (int64_t)value;
 		} break;
 
 		case kind_u8:
 		{
 			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
-			out->u8 = (uint8_t)value;
+			token->u8 = (uint8_t)value;
 		} break;
 
 		case kind_u16:
 		{
 			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
-			out->u16 = (uint16_t)value;
+			token->u16 = (uint16_t)value;
 		} break;
 
 		case kind_u32:
 		{
 			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
-			out->u32 = (uint32_t)value;
+			token->u32 = (uint32_t)value;
 		} break;
 
 		case kind_u64:
 		{
 			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
-			out->u64 = (uint64_t)value;
+			token->u64 = (uint64_t)value;
 		} break;
 
 		case kind_f32:
 		{
-			out->f32 = strtof(lexer->buffer + offset, NULL);
+			token->f32 = strtof(lexer->buffer + offset, NULL);
 		} break;
 
 		case kind_f64:
 		{
-			out->f64 = strtold(lexer->buffer + offset, NULL);
+			token->f64 = strtold(lexer->buffer + offset, NULL);
 		} break;
 
 		default:
@@ -802,11 +802,11 @@ static uint8_t lex_possible_rune(
 	{
 		case '\\':
 		{
-			primec_location_s loc = lexer->location;
+			const primec_location_s location = lexer->location;
 			utf8char = next_utf8char(lexer, NULL, false);
 
 			char buffer[9];
-			char* end_pointer;
+			char* end_pointer = NULL;
 
 			switch (utf8char)
 			{
@@ -886,7 +886,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(loc, "invalid hex literal.");
+						log_lexer_error(location, "invalid hex literal.");
 					}
 
 					rune[0] = (char)utf8char;
@@ -905,7 +905,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(loc, "invalid hex literal.");
+						log_lexer_error(location, "invalid hex literal.");
 					}
 
 					return primec_utf8_encode(rune, utf8char);
@@ -927,7 +927,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(loc, "invalid hex literal.");
+						log_lexer_error(location, "invalid hex literal.");
 					}
 
 					return primec_utf8_encode(rune, utf8char);
@@ -940,7 +940,7 @@ static uint8_t lex_possible_rune(
 
 				default:
 				{
-					log_lexer_error(loc, "invalid escape '\\%c'.", (char)utf8char);
+					log_lexer_error(location, "invalid escape '\\%c'.", (char)utf8char);
 				} break;
 			}
 
@@ -1088,14 +1088,14 @@ static primec_token_type_e lex_string_literal_token(
 			// NOTE: Should never ever happen as this function will get symbols
 			//       that are already verified to be correct ones!
 			primec_debug_assert(0); // Sanity check for developers.
-			return primec_token_type_none;
+			return primec_token_type_none; // To prevent compiler error.
 		} break;
 	}
 
 	// NOTE: Should never ever happen as this function will get symbols
 	//       that are already verified to be correct ones!
 	primec_debug_assert(0); // Sanity check for developers.
-	return primec_token_type_none;
+	return primec_token_type_none; // To prevent compiler error.
 }
 
 static primec_token_type_e lex_up_to_2_symbol_token(
