@@ -43,10 +43,6 @@ static void append_buffer(
 	const char* const buffer,
 	const uint64_t size);
 
-static char* utf8char_to_heap_string(
-	const utf8char_t utf8char,
-	uint64_t* const string_length);
-
 static utf8char_t next_utf8char(
 	primec_lexer_s* const lexer,
 	primec_location_s* const location,
@@ -264,9 +260,11 @@ primec_token_type_e primec_lexer_lex(
 
 		default:
 		{
-			token->type = primec_token_type_invalid;
-			token->invalid.data = utf8char_to_heap_string(utf8char, &token->invalid.length);
-			clear_buffer(lexer);
+			char invalid[4];
+			const uint8_t length = primec_utf8_encode(invalid, utf8char);
+			log_lexer_error(token->location, "invalid token encountered: `%.*s`",
+				(signed int)length, invalid
+			);
 		} break;
 	}
 
@@ -324,18 +322,6 @@ static void append_buffer(
 	(void)memcpy(lexer->buffer + lexer->buffer_length, buffer, size);
 	lexer->buffer_length += size;
 	lexer->buffer[lexer->buffer_length] = 0;
-}
-
-static char* utf8char_to_heap_string(
-	const utf8char_t utf8char,
-	uint64_t* const string_length)
-{
-	char* buffer = (char*)primec_utils_malloc(4 * sizeof(char));
-	const uint8_t buffer_length = primec_utf8_encode(buffer, utf8char);
-	primec_debug_assert(buffer_length <= 4);
-	buffer = (char*)primec_utils_realloc(buffer, buffer_length);
-	if (string_length != NULL) { *string_length = buffer_length; }
-	return buffer;
 }
 
 static utf8char_t next_utf8char(

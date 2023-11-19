@@ -13,20 +13,11 @@
 #ifndef __primec__include__primec__token_h__
 #define __primec__include__primec__token_h__
 
+#include <primec/location.h>
 #include <primec/utf8.h>
 
 #include <stdbool.h>
 #include <stdint.h>
-
-typedef struct
-{
-	const char* file;
-	uint64_t line;
-	uint64_t column;
-} primec_location_s;
-
-#define primec_location_fmt "%s:%lu:%lu"
-#define primec_location_arg(_location) (_location).file, (_location).line, (_location).column
 
 typedef enum
 {
