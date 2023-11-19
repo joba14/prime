@@ -1,3 +1,15 @@
 
 // Here is ^ a variable of type i64
 let variable: mut i64 = 0;
+
+"hello!"
+"hello, world!"
+"hello, world!\0"
+"hello, world!\n"
+"hello, world!\n\0"
+"\thello, world!\n\0"
+
+'A'
+'A'
+'A'
+'\t'

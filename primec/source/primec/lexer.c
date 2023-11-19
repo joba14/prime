@@ -119,7 +119,7 @@ static uint64_t compute_exponent(
 }
 
 // TODO: fix this:
-static void lex_any_literal(
+static void lex_literal_token(
 	primec_lexer_s* const lexer,
 	primec_token_s* const out)
 {
@@ -386,6 +386,307 @@ want_int:
 	clear_buffer(lexer);
 }
 
+static uint64_t lex_rune(
+	primec_lexer_s* const lexer,
+	char* out)
+{
+	char buf[9];
+	char* endptr;
+	primec_location_s loc;
+	utf8char_t utf8char = next_utf8char(lexer, NULL, false);
+	primec_debug_assert(utf8char != primec_utf8_invalid);
+
+	switch (utf8char)
+	{
+		case '\\':
+		{
+			loc = lexer->location;
+			utf8char = next_utf8char(lexer, NULL, false);
+
+			switch (utf8char)
+			{
+				case '0':
+				{
+					out[0] = '\0';
+					return 1;
+				} break;
+
+				case 'a':
+				{
+					out[0] = '\a';
+					return 1;
+				} break;
+
+				case 'b':
+				{
+					out[0] = '\b';
+					return 1;
+				} break;
+
+				case 'f':
+				{
+					out[0] = '\f';
+					return 1;
+				} break;
+
+				case 'n':
+				{
+					out[0] = '\n';
+					return 1;
+				} break;
+
+				case 'r':
+				{
+					out[0] = '\r';
+					return 1;
+				} break;
+
+				case 't':
+				{
+					out[0] = '\t';
+					return 1;
+				} break;
+
+				case 'v':
+				{
+					out[0] = '\v';
+					return 1;
+				} break;
+
+				case '\\':
+				{
+					out[0] = '\\';
+					return 1;
+				} break;
+
+				case '\'':
+				{
+					out[0] = '\'';
+					return 1;
+				} break;
+
+				case '"':
+				{
+					out[0] = '\"';
+					return 1;
+				} break;
+
+				case 'x':
+				{
+					buf[0] = (char)next_utf8char(lexer, NULL, false);
+					buf[1] = (char)next_utf8char(lexer, NULL, false);
+					buf[2] = '\0';
+
+					utf8char = (utf8char_t)strtoul(&buf[0], &endptr, 16);
+
+					if (*endptr != '\0')
+					{
+						log_lexer_error(loc, "invalid hex literal");
+					}
+
+					out[0] = (char)utf8char;
+					return 1;
+				} break;
+
+				case 'u':
+				{
+					buf[0] = (char)next_utf8char(lexer, NULL, false);
+					buf[1] = (char)next_utf8char(lexer, NULL, false);
+					buf[2] = (char)next_utf8char(lexer, NULL, false);
+					buf[3] = (char)next_utf8char(lexer, NULL, false);
+					buf[4] = '\0';
+
+					utf8char = (utf8char_t)strtoul(&buf[0], &endptr, 16);
+
+					if (*endptr != '\0')
+					{
+						log_lexer_error(loc, "invalid hex literal");
+					}
+
+					return primec_utf8_encode(out, utf8char);
+				} break;
+
+				case 'U':
+				{
+					buf[0] = (char)next_utf8char(lexer, NULL, false);
+					buf[1] = (char)next_utf8char(lexer, NULL, false);
+					buf[2] = (char)next_utf8char(lexer, NULL, false);
+					buf[3] = (char)next_utf8char(lexer, NULL, false);
+					buf[4] = (char)next_utf8char(lexer, NULL, false);
+					buf[5] = (char)next_utf8char(lexer, NULL, false);
+					buf[6] = (char)next_utf8char(lexer, NULL, false);
+					buf[7] = (char)next_utf8char(lexer, NULL, false);
+					buf[8] = '\0';
+
+					utf8char = (utf8char_t)strtoul(&buf[0], &endptr, 16);
+
+					if (*endptr != '\0')
+					{
+						log_lexer_error(loc, "invalid hex literal");
+					}
+
+					return primec_utf8_encode(out, utf8char);
+				} break;
+
+				case primec_utf8_invalid:
+				{
+					log_lexer_error(lexer->location, "unexpected end of file");
+				} break;
+
+				default:
+				{
+					log_lexer_error(loc, "invalid escape '\\%c'", (char)utf8char);
+				} break;
+			}
+
+			primec_debug_assert(0);
+		} break;
+
+		default:
+		{
+			return primec_utf8_encode(out, utf8char);
+		} break;
+	}
+
+	primec_debug_assert(0);
+}
+
+static primec_token_type_e lex_rune_literal_token(
+	primec_lexer_s* const lexer,
+	primec_token_s* const out)
+{
+	utf8char_t utf8char = next_utf8char(lexer, &out->location, false);
+	char buffer[primec_utf8_max_size + 1];
+
+	// NOTE: Should never ever happen as this function will get symbols
+	//       that are already verified to be correct ones!
+	primec_debug_assert(
+		utf8char != primec_utf8_invalid && '\'' == utf8char
+	); // Sanity check for developers.
+
+	switch (utf8char)
+	{
+		case '\'':
+		{
+			utf8char = next_utf8char(lexer, NULL, false);
+
+			switch (utf8char)
+			{
+				case '\'':
+				{
+					log_lexer_error(out->location, "expected rune before trailing single quote");
+				} break;
+
+				case '\\':
+				{
+					push_utf8char(lexer, utf8char, false);
+					primec_location_s loc = lexer->location;
+					const uint64_t size = lex_rune(lexer, buffer);
+					buffer[size] = '\0';
+
+					const char* s = buffer;
+					out->rune = primec_utf8_decode(&s);
+
+					if (primec_utf8_invalid == out->rune)
+					{
+						log_lexer_error(loc, "invalid utf-8 in rune literal");
+					}
+				} break;
+
+				default:
+				{
+					out->rune = utf8char;
+				} break;
+			}
+
+			if (next_utf8char(lexer, NULL, false) != '\'')
+			{
+				log_lexer_error(out->location, "expected trailing single quote");
+			}
+
+			out->type = primec_token_type_literal_rune;
+			return out->type;
+		} break;
+
+		default:
+		{
+			// NOTE: Should never ever happen as this function will get symbols
+			//       that are already verified to be correct ones!
+			primec_debug_assert(0); // Sanity check for developers.
+		} break;
+	}
+
+	// NOTE: Should never ever happen as this function will get symbols
+	//       that are already verified to be correct ones!
+	primec_debug_assert(0); // Sanity check for developers.
+	return 0;
+}
+
+
+static primec_token_type_e lex_string_literal_token(
+	primec_lexer_s* const lexer,
+	primec_token_s* const out)
+{
+	utf8char_t delimeter = primec_utf8_invalid;
+	utf8char_t utf8char = next_utf8char(lexer, &out->location, false);
+	char buffer[primec_utf8_max_size + 1];
+
+	// NOTE: Should never ever happen as this function will get symbols
+	//       that are already verified to be correct ones!
+	primec_debug_assert(
+		utf8char != primec_utf8_invalid && '\"' == utf8char
+	); // Sanity check for developers.
+
+	switch (utf8char)
+	{
+		case '\"':
+		{
+			delimeter = utf8char;
+			while ((utf8char = next_utf8char(lexer, NULL, false)) != delimeter)
+			{
+				if (utf8char == primec_utf8_invalid)
+				{
+					log_lexer_error(lexer->location, "unexpected end of file");
+				}
+
+				push_utf8char(lexer, utf8char, false);
+
+				if (delimeter == '\"')
+				{
+					const uint64_t size = lex_rune(lexer, buffer);
+					append_buffer(lexer, buffer, size);
+				}
+				else
+				{
+					next_utf8char(lexer, NULL, true);
+				}
+			}
+
+			char* const s = primec_utils_malloc((lexer->buffer_length + 1) * sizeof(char));
+			primec_utils_memcpy(s, lexer->buffer, lexer->buffer_length);
+
+			out->type = primec_token_type_literal_str;
+			out->str.data = s;
+			out->str.length = lexer->buffer_length;
+
+			clear_buffer(lexer);
+			return out->type;
+		} break;
+
+		default:
+		{
+			// NOTE: Should never ever happen as this function will get symbols
+			//       that are already verified to be correct ones!
+			primec_debug_assert(0); // Sanity check for developers.
+		} break;
+	}
+
+	// NOTE: Should never ever happen as this function will get symbols
+	//       that are already verified to be correct ones!
+	primec_debug_assert(0); // Sanity check for developers.
+	return 0;
+}
+
 // -----------------------------------------------------------------------------------
 
 
@@ -460,7 +761,7 @@ primec_token_type_e primec_lexer_lex(
 	if (utf8char <= 0x7F && (isdigit(utf8char) || '+' == utf8char || '-' == utf8char))
 	{
 		push_utf8char(lexer, utf8char, false);
-		lex_any_literal(lexer, token);
+		lex_literal_token(lexer, token);
 		return token->type;
 	}
 
@@ -470,7 +771,7 @@ primec_token_type_e primec_lexer_lex(
 	// TODO: remove(4):
 	if (0)
 	{
-		lex_any_literal(NULL, NULL);
+		lex_literal_token(NULL, NULL);
 	}
 
 	if (is_symbol_first_of_identifier_or_keyword(utf8char))
@@ -481,16 +782,17 @@ primec_token_type_e primec_lexer_lex(
 
 	switch (utf8char)
 	{
-// TODO: implement literals strings and chars:
-/*
-		case '"':
-		case '`':
 		case '\'':
 		{
 			push_utf8char(lexer, utf8char, false);
-			return lex_string(lexer, token);
+			return lex_rune_literal_token(lexer, token);
 		} break;
-*/
+
+		case '\"':
+		{
+			push_utf8char(lexer, utf8char, false);
+			return lex_string_literal_token(lexer, token);
+		} break;
 
 		case '<':
 		case '>':
@@ -759,14 +1061,14 @@ static primec_token_type_e lex_identifier_or_keyword(
 	primec_debug_assert(token != NULL);
 
 	// NOTE: Should never ever happen as this function will get symbols
-	// that are already verified to be correct ones!
+	//       that are already verified to be correct ones!
 	primec_debug_assert(
 		is_symbol_first_of_identifier_or_keyword(utf8char)
 	);// Sanity check for developers.
 
 	while ((utf8char = next_utf8char(lexer, NULL, true)) != primec_utf8_invalid)
 	{
-		if (!is_symbol_not_first_of_identifier_or_keyword(utf8char)) // (utf8char > 0x7F || (!isalnum(utf8char) && utf8char != '_'))
+		if (!is_symbol_not_first_of_identifier_or_keyword(utf8char))
 		{
 			push_utf8char(lexer, utf8char, true);
 			break;
@@ -790,7 +1092,7 @@ static primec_token_type_e lex_up_to_2_symbol_token(
 	primec_debug_assert(token != NULL);
 
 	// NOTE: Should never ever happen as this function will get symbols
-	// that are already verified to be correct ones!
+	//       that are already verified to be correct ones!
 	primec_debug_assert(utf8char != primec_utf8_invalid); // Sanity check for developers.
 
 	switch (utf8char)
@@ -989,7 +1291,7 @@ static primec_token_type_e lex_up_to_2_symbol_token(
 		default:
 		{
 			// NOTE: Should never ever happen as this function will get symbols
-			// that are already verified to be correct ones!
+			//       that are already verified to be correct ones!
 			primec_debug_assert(0); // Sanity check for developers.
 		} break;
 	}
@@ -1006,7 +1308,7 @@ static primec_token_type_e lex_up_to_3_symbol_token(
 	primec_debug_assert(token != NULL);
 
 	// NOTE: Should never ever happen as this function will get symbols
-	// that are already verified to be correct ones!
+	//       that are already verified to be correct ones!
 	primec_debug_assert(utf8char != primec_utf8_invalid); // Sanity check for developers.
 
 	switch (utf8char)
@@ -1182,7 +1484,7 @@ static primec_token_type_e lex_up_to_3_symbol_token(
 		default:
 		{
 			// NOTE: Should never ever happen as this function will get symbols
-			// that are already verified to be correct ones!
+			//       that are already verified to be correct ones!
 			primec_debug_assert(0); // Sanity check for developers.
 		} break;
 	}

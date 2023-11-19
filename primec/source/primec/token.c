@@ -145,9 +145,9 @@ const char* primec_token_type_to_string(
 			return "multi_line_comment";
 		} break;
 
-		case primec_token_type_literal_c8:
+		case primec_token_type_literal_rune:
 		{
-			return "literal_c8";
+			return "literal_rune";
 		} break;
 
 		case primec_token_type_literal_i8:
@@ -331,6 +331,19 @@ const char* primec_token_to_string(
 				", multi_line_comment=`%.*s`]", (signed int)token->comment.length, token->comment.data
 			);
 		} break;
+
+		case primec_token_type_literal_rune:
+		{
+			char rune_buffer[4];
+			const uint8_t rune_buffer_length = primec_utf8_encode(rune_buffer, token->rune);
+
+			written += (uint64_t)snprintf(
+				token_string_buffer + written, token_string_buffer_capacity - written,
+				", literal_rune=`%.*s`]", (signed int)rune_buffer_length, rune_buffer
+			);
+		} break;
+
+		// TODO: other literals!
 
 		case primec_token_type_literal_str:
 		{

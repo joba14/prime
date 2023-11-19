@@ -93,7 +93,7 @@ int32_t main(
 }
 #endif
 
-		fclose(source_file);
+		(void)fclose(source_file);
 	}
 
 	return 0;

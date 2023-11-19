@@ -30,6 +30,11 @@ void primec_utils_memset(
 	const uint8_t value,
 	const uint64_t length);
 
+void primec_utils_memcpy(
+	void* const destination,
+	const void* const source,
+	const uint64_t length);
+
 char* primec_utils_strdup(
 	const char* const string);
 

@@ -55,11 +55,22 @@ void primec_utils_memset(
 	(void)memset((void*)pointer, value, length);
 }
 
+void primec_utils_memcpy(
+	void* const destination,
+	const void* const source,
+	const uint64_t length)
+{
+	primec_debug_assert(destination != NULL);
+	primec_debug_assert(source != NULL);
+	primec_debug_assert(length > 0);
+	(void)memcpy((void*)destination, (const void*)source, length);
+}
+
 char* primec_utils_strdup(
 	const char* const string)
 {
 	primec_debug_assert(string != NULL);
-	char* result = strdup(string);
+	char* const result = strdup(string);
 	if (!result) { primec_logger_panic("internal failure -- failed to duplicate (and allocate) string"); }
 	return result;
 }
@@ -70,7 +81,7 @@ char* primec_utils_strndup(
 {
 	primec_debug_assert(string != NULL);
 	primec_debug_assert(length > 0);
-	char* result = strndup(string, length);
+	char* const result = strndup(string, length);
 	if (!result) { primec_logger_panic("internal failure -- failed to duplicate (and allocate) string"); }
 	return result;
 }

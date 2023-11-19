@@ -13,6 +13,8 @@
 #ifndef __primec__include__primec__token_h__
 #define __primec__include__primec__token_h__
 
+#include <primec/utf8.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -124,7 +126,7 @@ typedef enum
 	primec_token_type_single_line_comment,		// //
 	primec_token_type_multi_line_comment,		// /**/
 
-	primec_token_type_literal_c8,
+	primec_token_type_literal_rune,
 	primec_token_type_literal_i8,
 	primec_token_type_literal_i16,
 	primec_token_type_literal_i32,
@@ -163,7 +165,8 @@ typedef struct
 			char* data;
 			uint64_t length;
 		} comment;
-		char c8;
+
+		utf8char_t rune;
 		int8_t i8;
 		int16_t i16;
 		int32_t i32;

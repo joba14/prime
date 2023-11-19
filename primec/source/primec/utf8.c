@@ -171,11 +171,11 @@ static int64_t get_utf8_size(
 		sizeof(g_sizes) / sizeof(g_sizes[0])
 	);
 
-	for (uint64_t i = 0; i < count; ++i)
+	for (uint64_t index = 0; index < count; ++index)
 	{
-		if ((c & g_sizes[i].mask) == g_sizes[i].result)
+		if ((c & g_sizes[index].mask) == g_sizes[index].result)
 		{
-			return g_sizes[i].octets;
+			return g_sizes[index].octets;
 		}
 	}
 
