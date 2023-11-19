@@ -25,9 +25,14 @@ typedef struct
 	FILE* file;
 	primec_location_s location;
 	primec_token_s token;
-	char* buffer;
-	uint64_t buffer_capacity;
-	uint64_t buffer_length;
+
+	struct
+	{
+		char* data;
+		uint64_t capacity;
+		uint64_t length;
+	} buffer;
+
 	utf8char_t c[2];
 	bool require_int;
 } primec_lexer_s;

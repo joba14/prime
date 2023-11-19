@@ -120,9 +120,9 @@ primec_lexer_s primec_lexer_from_parts(
 	lexer.location.line = 1;
 	lexer.location.column = 0;
 
-	lexer.buffer_capacity = 256;
-	lexer.buffer = primec_utils_malloc(lexer.buffer_capacity * sizeof(char));
-	lexer.buffer_length = 0;
+	lexer.buffer.capacity = 256;
+	lexer.buffer.data = primec_utils_malloc(lexer.buffer.capacity * sizeof(char));
+	lexer.buffer.length = 0;
 	lexer.c[0] = primec_utf8_invalid;
 	lexer.c[1] = primec_utf8_invalid;
 	lexer.require_int = false;
@@ -132,7 +132,7 @@ primec_lexer_s primec_lexer_from_parts(
 void primec_lexer_destroy(
 	primec_lexer_s* const lexer)
 {
-	primec_utils_free(lexer->buffer);
+	primec_utils_free(lexer->buffer.data);
 	primec_utils_memset((void*)lexer, 0, sizeof(primec_lexer_s));
 }
 
@@ -313,15 +313,15 @@ static void append_buffer(
 	primec_debug_assert(buffer != NULL);
 	primec_debug_assert(size > 0);
 
-	if (lexer->buffer_length + size >= lexer->buffer_capacity)
+	if (lexer->buffer.length + size >= lexer->buffer.capacity)
 	{
-		lexer->buffer_capacity *= 2;
-		lexer->buffer = primec_utils_realloc(lexer->buffer, lexer->buffer_capacity);
+		lexer->buffer.capacity *= 2;
+		lexer->buffer.data = primec_utils_realloc(lexer->buffer.data, lexer->buffer.capacity);
 	}
 
-	(void)memcpy(lexer->buffer + lexer->buffer_length, buffer, size);
-	lexer->buffer_length += size;
-	lexer->buffer[lexer->buffer_length] = 0;
+	(void)memcpy(lexer->buffer.data + lexer->buffer.length, buffer, size);
+	lexer->buffer.length += size;
+	lexer->buffer.data[lexer->buffer.length] = 0;
 }
 
 static utf8char_t next_utf8char(
@@ -390,8 +390,8 @@ static void clear_buffer(
 	primec_lexer_s* const lexer)
 {
 	primec_debug_assert(lexer != NULL);
-	lexer->buffer_length = 0;
-	lexer->buffer[0] = 0;
+	lexer->buffer.length = 0;
+	lexer->buffer.data[0] = 0;
 }
 
 static void consume_buffer(
@@ -400,10 +400,10 @@ static void consume_buffer(
 {
 	for (uint64_t index = 0; index < length; ++index)
 	{
-		while (0x80 == (lexer->buffer[--lexer->buffer_length] & 0xC0));
+		while (0x80 == (lexer->buffer.data[--lexer->buffer.length] & 0xC0));
 	}
 
-	lexer->buffer[lexer->buffer_length] = 0;
+	lexer->buffer.data[lexer->buffer.length] = 0;
 }
 
 static void push_utf8char(
@@ -469,9 +469,9 @@ static primec_token_type_e lex_identifier_or_keyword(
 		}
 	}
 
-	token->type = primec_token_type_from_string(lexer->buffer);
-	token->ident.data = primec_utils_strndup(lexer->buffer, lexer->buffer_length);
-	token->ident.length = lexer->buffer_length;
+	token->type = primec_token_type_from_string(lexer->buffer.data);
+	token->ident.data = primec_utils_strndup(lexer->buffer.data, lexer->buffer.length);
+	token->ident.length = lexer->buffer.length;
 
 	clear_buffer(lexer);
 	return token->type;
@@ -633,7 +633,7 @@ static bool lex_numeric_literal_token(
 			case 'u':
 			{
 				state |= base_dec | 1 << suffix_start;
-				suffix_start = lexer->buffer_length - 1;
+				suffix_start = lexer->buffer.length - 1;
 			} break;
 
 			default:
@@ -698,7 +698,7 @@ want_int:
 	{
 		for (uint8_t index = 0; index < (sizeof(literals) / sizeof(literals[0])); ++index)
 		{
-			if (!primec_utils_strcmp(literals[index].suffix, lexer->buffer + suffix_start))
+			if (!primec_utils_strcmp(literals[index].suffix, lexer->buffer.data + suffix_start))
 			{
 				token->type = literals[index].type;
 				kind = literals[index].kind;
@@ -708,7 +708,7 @@ want_int:
 
 		if (kind_unknown == kind)
 		{
-			log_lexer_error(token->location, "invalid suffix '%s'.", lexer->buffer + suffix_start);
+			log_lexer_error(token->location, "invalid suffix '%s'.", lexer->buffer.data + suffix_start);
 		}
 	}
 	else
@@ -723,60 +723,60 @@ want_int:
 	{
 		case kind_i8:
 		{
-			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
+			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->i8 = (int8_t)value;
 		} break;
 
 		case kind_i16:
 		{
-			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
+			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->i16 = (int16_t)value;
 		} break;
 
 		case kind_i32:
 		{
-			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
+			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->i32 = (int32_t)value;
 		} break;
 
 		case kind_i64:
 		{
-			const int64_t value = strtoimax(lexer->buffer + offset, NULL, base);
+			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->i64 = (int64_t)value;
 		} break;
 
 		case kind_u8:
 		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
+			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->u8 = (uint8_t)value;
 		} break;
 
 		case kind_u16:
 		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
+			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->u16 = (uint16_t)value;
 		} break;
 
 		case kind_u32:
 		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
+			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->u32 = (uint32_t)value;
 		} break;
 
 		case kind_u64:
 		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer + offset, NULL, base);
+			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
 			token->u64 = (uint64_t)value;
 		} break;
 
 		case kind_f32:
 		{
-			token->f32 = strtof(lexer->buffer + offset, NULL);
+			token->f32 = strtof(lexer->buffer.data + offset, NULL);
 		} break;
 
 		case kind_f64:
 		{
-			token->f64 = strtold(lexer->buffer + offset, NULL);
+			token->f64 = strtold(lexer->buffer.data + offset, NULL);
 		} break;
 
 		default:
@@ -1072,12 +1072,12 @@ static primec_token_type_e lex_string_literal_token(
 			}
 
 			char* const string = primec_utils_malloc(
-				(lexer->buffer_length + 1) * sizeof(char));
-			primec_utils_memcpy(string, lexer->buffer, lexer->buffer_length);
+				(lexer->buffer.length + 1) * sizeof(char));
+			primec_utils_memcpy(string, lexer->buffer.data, lexer->buffer.length);
 
 			token->type = primec_token_type_literal_str;
 			token->str.data = string;
-			token->str.length = lexer->buffer_length;
+			token->str.length = lexer->buffer.length;
 
 			clear_buffer(lexer);
 			return token->type;
@@ -1179,8 +1179,8 @@ static primec_token_type_e lex_up_to_2_symbol_token(
 					while ((utf8char = next_utf8char(lexer, NULL, true)) != primec_utf8_invalid && utf8char != '\n');
 
 					// NOTE: subtracting one from the length of the buffer to ignore the end of line symbol '\n':
-					token->comment.data = primec_utils_strndup(lexer->buffer, lexer->buffer_length - 1);
-					token->comment.length = lexer->buffer_length - 1;
+					token->comment.data = primec_utils_strndup(lexer->buffer.data, lexer->buffer.length - 1);
+					token->comment.length = lexer->buffer.length - 1;
 					clear_buffer(lexer);
 				} break;
 
@@ -1200,8 +1200,8 @@ static primec_token_type_e lex_up_to_2_symbol_token(
 
 					// NOTE: subtracting two from the length of the buffer to ignore the end of multi line comment
 					//       symbols "*/":
-					token->comment.data = primec_utils_strndup(lexer->buffer, lexer->buffer_length - 2);
-					token->comment.length = lexer->buffer_length - 2;
+					token->comment.data = primec_utils_strndup(lexer->buffer.data, lexer->buffer.length - 2);
+					token->comment.length = lexer->buffer.length - 2;
 					clear_buffer(lexer);
 				} break;
 
