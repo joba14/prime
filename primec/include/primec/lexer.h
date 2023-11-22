@@ -33,7 +33,7 @@ typedef struct
 		uint64_t length;
 	} buffer;
 
-	utf8char_t c[2];
+	utf8char_t cache[2];
 	bool require_int;
 } primec_lexer_s;
 

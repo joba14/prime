@@ -75,6 +75,9 @@ int32_t main(
 		const char* const source_file_path = source_files[index];
 		primec_debug_assert(source_file_path != NULL);
 
+		const uint64_t source_file_path_length = strlen(source_file_path);
+		primec_debug_assert(source_file_path_length > 0);
+
 		FILE* const source_file = is_file_valid(source_file_path);
 		if (!source_file) { continue; }
 

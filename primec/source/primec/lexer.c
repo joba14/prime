@@ -26,7 +26,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#define log_lexer_error(_location, _format, ...)                               \
+#define log_lexer_error_and_exit(_location, _format, ...)                      \
 	do {                                                                       \
 		(void)fprintf(stderr, "%s:%lu:%lu: ",                                  \
 			(_location).file, (_location).line, (_location).column);           \
@@ -123,8 +123,8 @@ primec_lexer_s primec_lexer_from_parts(
 	lexer.buffer.capacity = 256;
 	lexer.buffer.data = primec_utils_malloc(lexer.buffer.capacity * sizeof(char));
 	lexer.buffer.length = 0;
-	lexer.c[0] = primec_utf8_invalid;
-	lexer.c[1] = primec_utf8_invalid;
+	lexer.cache[0] = primec_utf8_invalid;
+	lexer.cache[1] = primec_utf8_invalid;
 	lexer.require_int = false;
 	return lexer;
 }
@@ -159,7 +159,7 @@ primec_token_type_e primec_lexer_lex(
 		return token->type;
 	}
 
-	if (utf8char <= 0x7F && (isdigit(utf8char) || '+' == utf8char || '-' == utf8char))
+	if (is_symbol_first_of_numeric_literal(utf8char))
 	{
 		push_utf8char(lexer, utf8char, false);
 
@@ -262,7 +262,7 @@ primec_token_type_e primec_lexer_lex(
 		{
 			char invalid[4];
 			const uint8_t length = primec_utf8_encode(invalid, utf8char);
-			log_lexer_error(token->location, "invalid token encountered: `%.*s`",
+			log_lexer_error_and_exit(token->location, "invalid token encountered: `%.*s`",
 				(signed int)length, invalid
 			);
 		} break;
@@ -332,11 +332,11 @@ static utf8char_t next_utf8char(
 	primec_debug_assert(lexer != NULL);
 	utf8char_t utf8char = primec_utf8_invalid;
 
-	if (lexer->c[0] != primec_utf8_invalid)
+	if (lexer->cache[0] != primec_utf8_invalid)
 	{
-		utf8char = lexer->c[0];
-		lexer->c[0] = lexer->c[1];
-		lexer->c[1] = primec_utf8_invalid;
+		utf8char = lexer->cache[0];
+		lexer->cache[0] = lexer->cache[1];
+		lexer->cache[1] = primec_utf8_invalid;
 	}
 	else
 	{
@@ -345,7 +345,7 @@ static utf8char_t next_utf8char(
 
 		if (primec_utf8_invalid == utf8char && !feof(lexer->file))
 		{
-			log_lexer_error(lexer->location, "invalid utf-8 sequence encountered.");
+			log_lexer_error_and_exit(lexer->location, "invalid utf-8 sequence encountered.");
 		}
 	}
 
@@ -353,9 +353,9 @@ static utf8char_t next_utf8char(
 	{
 		*location = lexer->location;
 
-		for (uint8_t index = 0; index < 2 && lexer->c[index] != primec_utf8_invalid; ++index)
+		for (uint8_t index = 0; index < 2 && lexer->cache[index] != primec_utf8_invalid; ++index)
 		{
-			update_location(&lexer->location, lexer->c[index]);
+			update_location(&lexer->location, lexer->cache[index]);
 		}
 	}
 
@@ -373,7 +373,7 @@ static utf8char_t next_utf8char(
 static bool is_symbol_a_white_space(
 	const utf8char_t utf8char)
 {
-	return '\t' == utf8char || '\n' == utf8char || '\r' == utf8char || ' ' == utf8char;
+	return ('\t' == utf8char) || ('\n' == utf8char) || ('\r' == utf8char) || (' ' == utf8char);
 }
 
 static utf8char_t get_utf8char(
@@ -413,9 +413,9 @@ static void push_utf8char(
 {
 	primec_debug_assert(lexer != NULL);
 
-	primec_debug_assert(primec_utf8_invalid == lexer->c[1]);
-	lexer->c[1] = lexer->c[0];
-	lexer->c[0] = utf8char;
+	primec_debug_assert(primec_utf8_invalid == lexer->cache[1]);
+	lexer->cache[1] = lexer->cache[0];
+	lexer->cache[0] = utf8char;
 
 	if (buffer)
 	{
@@ -441,7 +441,7 @@ static bool is_symbol_first_of_numeric_literal(
 	const utf8char_t utf8char)
 {
 	primec_debug_assert(utf8char != primec_utf8_invalid);
-	return (utf8char <= 0x7F) && (isdigit(utf8char) || '+' == utf8char || '-' == utf8char);
+	return (utf8char <= 0x7F) && isdigit(utf8char);
 }
 
 static primec_token_type_e lex_identifier_or_keyword(
@@ -477,6 +477,37 @@ static primec_token_type_e lex_identifier_or_keyword(
 	return token->type;
 }
 
+static uint64_t compute_exponent(
+	uint64_t n,
+	uint64_t exponent,
+	const bool is_signed)
+{
+	if (0 == n)
+	{
+		return 0;
+	}
+
+	for (uint64_t index = 0; index < exponent; ++index)
+	{
+		uint64_t old = n;
+		n *= 10;
+
+		if (n / 10 != old)
+		{
+			errno = ERANGE;
+			return INT64_MAX;
+		}
+	}
+
+	if (is_signed && n > (uint64_t)INT64_MIN)
+	{
+		errno = ERANGE;
+		return INT64_MAX;
+	}
+
+	return n;
+}
+
 static bool lex_numeric_literal_token(
 	primec_lexer_s* const lexer,
 	primec_token_s* const token)
@@ -484,19 +515,10 @@ static bool lex_numeric_literal_token(
 	primec_debug_assert(lexer != NULL);
 	primec_debug_assert(token != NULL);
 
-	enum
-	{
-		base_bin = 1, base_oct, base_hex, base_dec = 0x07, base_mask = base_dec
-	};
-
-	_Static_assert(
-		(base_bin | base_oct | base_hex | base_dec) == base_dec, "base_dec bits must be a superset of all other bases"
-	);
-
-	enum
-	{
-		flag_flt = 3, flag_suff, flag_dig
-	};
+	enum { base_bin = 1, base_oct, base_hex, base_dec = 0x07, base_mask = base_dec };
+	_Static_assert((base_bin | base_oct | base_hex | base_dec) == base_dec,
+		"base_dec bits must be a superset of all other bases" );
+	enum { flag_flt = 3, flag_exp, flag_suff, flag_dig };
 
 	static const char chrs[][24] =
 	{
@@ -521,11 +543,11 @@ static bool lex_numeric_literal_token(
 	};
 
 	int32_t state = base_dec;
-	int32_t base = 10;
 	int32_t old_state = base_dec;
+	int32_t base = 10;
 
 	utf8char_t utf8char = next_utf8char(lexer, &token->location, true);
-	utf8char_t last = 0;
+	utf8char_t last = primec_utf8_invalid;
 
 	// NOTE: Should never ever happen as this function will get symbols
 	//       that are already verified to be correct ones!
@@ -533,50 +555,27 @@ static bool lex_numeric_literal_token(
 		is_symbol_first_of_numeric_literal(utf8char)
 	);// Sanity check for developers.
 
-	utf8char_t sign_symbol = '\0';
-
-	if ('+' == utf8char || '-' == utf8char)
-	{
-		sign_symbol = utf8char;
-		utf8char = next_utf8char(lexer, NULL, true);
-	}
-
 	if ('0' == utf8char)
 	{
 		utf8char = next_utf8char(lexer, NULL, true);
 
-		if (utf8char <= 0x7F && isdigit(utf8char))
+		if (is_symbol_first_of_numeric_literal(utf8char))
 		{
-			log_lexer_error(token->location, "leading zero in base 10 literal.");
+			log_lexer_error_and_exit(token->location, "leading zero in base 10 literal.");
 		}
 
 		if ('b' == utf8char)
 		{
-			if (sign_symbol != '\0')
-			{
-				log_lexer_error(token->location, "sign cannot prefix binary literal.");
-			}
-
 			state = base_bin | 1 << flag_dig;
 			base = 2;
 		}
 		else if ('o' == utf8char)
 		{
-			if (sign_symbol != '\0')
-			{
-				log_lexer_error(token->location, "sign cannot prefix octal literal.");
-			}
-
 			state = base_oct | 1 << flag_dig;
 			base = 8;
 		}
 		else if ('x' == utf8char)
 		{
-			if (sign_symbol != '\0')
-			{
-				log_lexer_error(token->location, "sign cannot prefix hex literal.");
-			}
-
 			state = base_hex | 1 << flag_dig;
 			base = 16;
 		}
@@ -588,6 +587,7 @@ static bool lex_numeric_literal_token(
 		utf8char = next_utf8char(lexer, NULL, true);
 	}
 
+	uint64_t exponent_start = 0;
 	uint64_t suffix_start = 0;
 
 	do
@@ -598,7 +598,7 @@ static bool lex_numeric_literal_token(
 			last = utf8char;
 			continue;
 		}
-		else if (utf8char > 0x7f || !strchr(matching_states[utf8char], state))
+		else if (utf8char > 0x7F || !strchr(matching_states[utf8char], state))
 		{
 			goto end;
 		}
@@ -624,6 +624,14 @@ static bool lex_numeric_literal_token(
 				state |= 1 << flag_flt;
 			} /* fallthrough */
 
+			case 'e':
+			case 'E':
+			case '+':
+			{
+				state |= base_dec | 1 << flag_exp;
+				exponent_start = lexer->buffer.length - 1;
+			} break;
+
 			case 'f':
 			{
 				state |= 1 << flag_flt;
@@ -632,7 +640,7 @@ static bool lex_numeric_literal_token(
 			case 'i':
 			case 'u':
 			{
-				state |= base_dec | 1 << suffix_start;
+				state |= base_dec | 1 << flag_suff;
 				suffix_start = lexer->buffer.length - 1;
 			} break;
 
@@ -644,14 +652,14 @@ static bool lex_numeric_literal_token(
 
 		if (state & 1 << flag_flt && lexer->require_int)
 		{
-			log_lexer_error(token->location, "expected integer literal.");
+			log_lexer_error_and_exit(token->location, "expected integer literal.");
 		}
 
 		last = utf8char;
 		state |= 1 << flag_dig;
 	} while ((utf8char = next_utf8char(lexer, NULL, true)) != primec_utf8_invalid);
 
-	last = 0;
+	last = primec_utf8_invalid;
 
 end:
 	if (last && !strchr("iu", (int32_t)last) && !strchr(chrs[state & base_mask], (int32_t)last))
@@ -670,7 +678,11 @@ want_int:
 
 	typedef enum
 	{
-		kind_unknown = -1, kind_i8, kind_i16, kind_i32, kind_i64, kind_u8, kind_u16, kind_u32, kind_u64, kind_f32, kind_f64
+		kind_unknown = -1,
+		kind_iconst,
+		kind_signed,
+		kind_unsigned,
+		kind_float,
 	} kind_e;
 
 	kind_e kind = kind_unknown;
@@ -682,16 +694,16 @@ want_int:
 		primec_token_type_e type;
 	} literals[] =
 	{
-		{ "i8",  kind_i8,  primec_token_type_literal_i8  },
-		{ "i16", kind_i16, primec_token_type_literal_i16 },
-		{ "i32", kind_i32, primec_token_type_literal_i32 },
-		{ "i64", kind_i64, primec_token_type_literal_i64 },
-		{ "u8",  kind_u8,  primec_token_type_literal_u8  },
-		{ "u16", kind_u16, primec_token_type_literal_u16 },
-		{ "u32", kind_u32, primec_token_type_literal_u32 },
-		{ "u64", kind_u64, primec_token_type_literal_u64 },
-		{ "f32", kind_f32, primec_token_type_literal_f32 },
-		{ "f64", kind_f64, primec_token_type_literal_f64 }
+		{ "i8",  kind_signed,   primec_token_type_literal_i8  },
+		{ "i16", kind_signed,   primec_token_type_literal_i16 },
+		{ "i32", kind_signed,   primec_token_type_literal_i32 },
+		{ "i64", kind_signed,   primec_token_type_literal_i64 },
+		{ "u8",  kind_unsigned, primec_token_type_literal_u8  },
+		{ "u16", kind_unsigned, primec_token_type_literal_u16 },
+		{ "u32", kind_unsigned, primec_token_type_literal_u32 },
+		{ "u64", kind_unsigned, primec_token_type_literal_u64 },
+		{ "f32", kind_float,    primec_token_type_literal_f32 },
+		{ "f64", kind_float,    primec_token_type_literal_f64 }
 	};
 
 	if (suffix_start)
@@ -708,17 +720,68 @@ want_int:
 
 		if (kind_unknown == kind)
 		{
-			log_lexer_error(token->location, "invalid suffix '%s'.", lexer->buffer.data + suffix_start);
+			log_lexer_error_and_exit(
+				token->location, "invalid suffix '%s'.", lexer->buffer.data + suffix_start
+			);
 		}
 	}
-	else
+
+	if (state & 1 << flag_flt)
 	{
-		return false;
+		if (kind_unknown == kind)
+		{
+			token->type = primec_token_type_literal_f64;
+		}
+		else if (kind != kind_float)
+		{
+			log_lexer_error_and_exit(token->location, "unexpected decimal point in integer literal");
+		}
+
+		token->fval = strtod(lexer->buffer.data, NULL);
+		clear_buffer(lexer);
+		return true;
 	}
 
-	const int64_t offset = (10 == base ? 0 : 2);
+	if (kind_unknown == kind)
+	{
+		kind = kind_iconst;
+		token->type = primec_token_type_literal_i64;
+	}
+
+	uint64_t exponent = 0;
 	errno = 0;
 
+	if (exponent_start)
+	{
+		exponent = strtoumax(lexer->buffer.data + exponent_start + 1, NULL, 10);
+	}
+
+	token->uval = strtoumax(lexer->buffer.data + (10 == base ? 0 : 2), NULL, base);
+	token->uval = compute_exponent(token->uval, exponent, kind_signed == kind);
+
+	if (ERANGE == errno)
+	{
+		log_lexer_error_and_exit(token->location, "numeric literal overflow.");
+	}
+
+	if (kind_iconst == kind && token->uval > (uint64_t)INT64_MAX)
+	{
+		token->type = primec_token_type_literal_u64;
+	}
+	else if (kind_signed == kind && token->uval == (uint64_t)INT64_MIN)
+	{
+		token->ival = INT64_MIN;
+	}
+	else if (kind != kind_unsigned)
+	{
+		token->ival = (int64_t)token->uval;
+	}
+
+	clear_buffer(lexer);
+	return true;
+
+
+#if 0
 	switch (kind)
 	{
 		case kind_i8:
@@ -789,6 +852,7 @@ want_int:
 
 	clear_buffer(lexer);
 	return true;
+#endif
 }
 
 static uint8_t lex_possible_rune(
@@ -886,7 +950,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(location, "invalid hex literal.");
+						log_lexer_error_and_exit(location, "invalid hex literal.");
 					}
 
 					rune[0] = (char)utf8char;
@@ -905,7 +969,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(location, "invalid hex literal.");
+						log_lexer_error_and_exit(location, "invalid hex literal.");
 					}
 
 					return primec_utf8_encode(rune, utf8char);
@@ -927,7 +991,7 @@ static uint8_t lex_possible_rune(
 
 					if (*end_pointer != '\0')
 					{
-						log_lexer_error(location, "invalid hex literal.");
+						log_lexer_error_and_exit(location, "invalid hex literal.");
 					}
 
 					return primec_utf8_encode(rune, utf8char);
@@ -935,12 +999,12 @@ static uint8_t lex_possible_rune(
 
 				case primec_utf8_invalid:
 				{
-					log_lexer_error(lexer->location, "unexpected end of file.");
+					log_lexer_error_and_exit(lexer->location, "unexpected end of file.");
 				} break;
 
 				default:
 				{
-					log_lexer_error(location, "invalid escape '\\%c'.", (char)utf8char);
+					log_lexer_error_and_exit(location, "invalid escape '\\%c'.", (char)utf8char);
 				} break;
 			}
 
@@ -980,7 +1044,7 @@ static primec_token_type_e lex_rune_literal_token(
 			{
 				case '\'':
 				{
-					log_lexer_error(token->location, "expected rune before trailing single quote.");
+					log_lexer_error_and_exit(token->location, "expected rune before trailing single quote.");
 				} break;
 
 				case '\\':
@@ -997,7 +1061,7 @@ static primec_token_type_e lex_rune_literal_token(
 
 					if (primec_utf8_invalid == token->rune)
 					{
-						log_lexer_error(location, "invalid utf-8 in rune literal.");
+						log_lexer_error_and_exit(location, "invalid utf-8 in rune literal.");
 					}
 				} break;
 
@@ -1009,7 +1073,7 @@ static primec_token_type_e lex_rune_literal_token(
 
 			if (next_utf8char(lexer, NULL, false) != '\'')
 			{
-				log_lexer_error(token->location, "expected trailing single quote.");
+				log_lexer_error_and_exit(token->location, "expected trailing single quote.");
 			}
 
 			token->type = primec_token_type_literal_rune;
@@ -1055,7 +1119,7 @@ static primec_token_type_e lex_string_literal_token(
 			{
 				if (utf8char == primec_utf8_invalid)
 				{
-					log_lexer_error(lexer->location, "unexpected end of file.");
+					log_lexer_error_and_exit(lexer->location, "unexpected end of file.");
 				}
 
 				push_utf8char(lexer, utf8char, false);
