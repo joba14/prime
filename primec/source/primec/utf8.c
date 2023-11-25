@@ -122,7 +122,7 @@ uint8_t primec_utf8_encode(
 		c >>= 6;
 	}
 
-	++length_minus_one; // NOTE: increasing to the actual length.
+	++length_minus_one; // NOTE: Increasing to the actual length.
 	string[0] = (char)(c | first);
 	return length_minus_one;
 }
