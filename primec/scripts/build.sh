@@ -41,6 +41,7 @@ mkdir "$PROJECT_DIR/build"
 case $BUILD_CONFIGURATION in
 	"debug")
 		FLAGS="-g -O0"
+		DEFINES="-Dprimec_lexer_only"
 		PROJECT_NAME_SUFFIX="_debug"
 		;;
 	"hybrid")
