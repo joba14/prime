@@ -90,7 +90,7 @@ int32_t main(
 		primec_token_s token = primec_token_from_type(primec_token_type_none);
 		while (!primec_lexer_should_stop_lexing(primec_lexer_lex(&lexer, &token)))
 		{
-			primec_logger_log(primec_token_to_string(&token));
+			primec_logger_log("%s", primec_token_to_string(&token));
 			primec_token_destroy(&token);
 		}
 }
