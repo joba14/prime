@@ -547,7 +547,7 @@ static bool lex_numeric_literal_token(
 	int32_t base = 10;
 
 	utf8char_t utf8char = next_utf8char(lexer, &token->location, true);
-	utf8char_t last = primec_utf8_invalid;
+	utf8char_t last = 0;
 
 	// NOTE: Should never ever happen as this function will get symbols
 	//       that are already verified to be correct ones!
@@ -659,7 +659,7 @@ static bool lex_numeric_literal_token(
 		state |= 1 << flag_dig;
 	} while ((utf8char = next_utf8char(lexer, NULL, true)) != primec_utf8_invalid);
 
-	last = primec_utf8_invalid;
+	last = 0;
 
 end:
 	if (last && !strchr("iu", (int32_t)last) && !strchr(chrs[state & base_mask], (int32_t)last))
@@ -1135,8 +1135,7 @@ static primec_token_type_e lex_string_literal_token(
 				}
 			}
 
-			char* const string = primec_utils_malloc(
-				(lexer->buffer.length + 1) * sizeof(char));
+			char* const string = primec_utils_malloc((lexer->buffer.length + 1) * sizeof(char));
 			primec_utils_memcpy(string, lexer->buffer.data, lexer->buffer.length);
 
 			token->type = primec_token_type_literal_str;
