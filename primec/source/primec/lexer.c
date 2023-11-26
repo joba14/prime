@@ -191,6 +191,7 @@ primec_token_type_e primec_lexer_lex(
 			return lex_string_literal_token(lexer, token);
 		} break;
 
+		case '.':
 		case '<':
 		case '>':
 		case '&':
@@ -200,7 +201,6 @@ primec_token_type_e primec_lexer_lex(
 			return lex_up_to_3_symbol_token(lexer, token, utf8char);
 		} break;
 
-		case '.':
 		case '*':
 		case '%':
 		case '/':
@@ -319,7 +319,7 @@ static void append_buffer(
 		lexer->buffer.data = primec_utils_realloc(lexer->buffer.data, lexer->buffer.capacity);
 	}
 
-	(void)memcpy(lexer->buffer.data + lexer->buffer.length, buffer, size);
+	primec_utils_memcpy(lexer->buffer.data + lexer->buffer.length, buffer, size);
 	lexer->buffer.length += size;
 	lexer->buffer.data[lexer->buffer.length] = 0;
 }
@@ -592,13 +592,13 @@ static bool lex_numeric_literal_token(
 
 	do
 	{
-		if (strchr(chrs[state & base_mask], (int32_t)utf8char))
+		if (primec_utils_strchr(chrs[state & base_mask], (int32_t)utf8char))
 		{
 			state &= ~(1 << flag_dig);
 			last = utf8char;
 			continue;
 		}
-		else if (utf8char > 0x7F || !strchr(matching_states[utf8char], state))
+		else if (utf8char > 0x7F || !primec_utils_strchr(matching_states[utf8char], state))
 		{
 			goto end;
 		}
@@ -662,7 +662,8 @@ static bool lex_numeric_literal_token(
 	last = 0;
 
 end:
-	if (last && !strchr("iu", (int32_t)last) && !strchr(chrs[state & base_mask], (int32_t)last))
+	if (last && !primec_utils_strchr("iu", (int32_t)last) &&
+		!primec_utils_strchr(chrs[state & base_mask], (int32_t)last))
 	{
 		state = old_state;
 		push_utf8char(lexer, utf8char, true);
@@ -779,80 +780,6 @@ want_int:
 
 	clear_buffer(lexer);
 	return true;
-
-
-#if 0
-	switch (kind)
-	{
-		case kind_i8:
-		{
-			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->i8 = (int8_t)value;
-		} break;
-
-		case kind_i16:
-		{
-			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->i16 = (int16_t)value;
-		} break;
-
-		case kind_i32:
-		{
-			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->i32 = (int32_t)value;
-		} break;
-
-		case kind_i64:
-		{
-			const int64_t value = strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->i64 = (int64_t)value;
-		} break;
-
-		case kind_u8:
-		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->u8 = (uint8_t)value;
-		} break;
-
-		case kind_u16:
-		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->u16 = (uint16_t)value;
-		} break;
-
-		case kind_u32:
-		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->u32 = (uint32_t)value;
-		} break;
-
-		case kind_u64:
-		{
-			const uint64_t value = (uint64_t)strtoimax(lexer->buffer.data + offset, NULL, base);
-			token->u64 = (uint64_t)value;
-		} break;
-
-		case kind_f32:
-		{
-			token->f32 = strtof(lexer->buffer.data + offset, NULL);
-		} break;
-
-		case kind_f64:
-		{
-			token->f64 = strtold(lexer->buffer.data + offset, NULL);
-		} break;
-
-		default:
-		{
-			// NOTE: Should never ever happen as this function handles unknown
-			//       numeric literal kind before entering the switch!
-			primec_debug_assert(0); // Sanity check for developers.
-		} break;
-	}
-
-	clear_buffer(lexer);
-	return true;
-#endif
 }
 
 static uint8_t lex_possible_rune(
@@ -1175,24 +1102,6 @@ static primec_token_type_e lex_up_to_2_symbol_token(
 
 	switch (utf8char)
 	{
-		case '.':
-		{
-			switch ((utf8char = next_utf8char(lexer, NULL, false)))
-			{
-				case '.':
-				{
-					token->type = primec_token_type_double_dot;
-				} break;
-
-				default:
-				{
-					push_utf8char(lexer, utf8char, false);
-					token->type = primec_token_type_dot;
-					lexer->require_int = true;
-				} break;
-			}
-		} break;
-
 		case '*':
 		{
 			switch ((utf8char = next_utf8char(lexer, NULL, false)))
@@ -1391,6 +1300,37 @@ static primec_token_type_e lex_up_to_3_symbol_token(
 
 	switch (utf8char)
 	{
+		case '.':
+		{
+			switch ((utf8char = next_utf8char(lexer, NULL, false)))
+			{
+				case '.':
+				{
+					switch ((utf8char = next_utf8char(lexer, NULL, false)))
+					{
+						case '.':
+						{
+							token->type = primec_token_type_ellipsis;
+						} break;
+
+						default:
+						{
+							push_utf8char(lexer, utf8char, false);
+							token->type = primec_token_type_slice;
+							lexer->require_int = true;
+						} break;
+					}
+				} break;
+
+				default:
+				{
+					push_utf8char(lexer, utf8char, false);
+					token->type = primec_token_type_dot;
+					lexer->require_int = true;
+				} break;
+			}
+		} break;
+
 		case '<':
 		{
 			switch ((utf8char = next_utf8char(lexer, NULL, false)))

@@ -95,6 +95,14 @@ int32_t primec_utils_strcmp(
 	return strcmp((const char*)left, (const char*)right);
 }
 
+char* primec_utils_strchr(
+	const char* const string,
+	const int32_t c)
+{
+	primec_debug_assert(string != NULL);
+	return strchr((const char*)string, c);
+}
+
 void* primec_utils_bsearch(
 	const void* key,
 	const void* base,

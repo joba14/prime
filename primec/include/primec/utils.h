@@ -46,6 +46,10 @@ int32_t primec_utils_strcmp(
 	const char* const left,
 	const char* const right);
 
+char* primec_utils_strchr(
+	const char* const string,
+	const int32_t c);
+
 void* primec_utils_bsearch(
 	const void* key,
 	const void* base,
