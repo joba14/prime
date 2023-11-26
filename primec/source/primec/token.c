@@ -110,7 +110,7 @@ static const char* const g_token_type_to_string_map[] =
 };
 
 _Static_assert(
-	(sizeof(g_token_type_to_string_map) / sizeof(const char*)) == (primec_token_type_informationless_count + 1),
+	(sizeof(g_token_type_to_string_map) / sizeof(g_token_type_to_string_map[0])) == (primec_token_type_informationless_count + 1),
 	"g_token_type_to_string_map is not in sync with primec_token_type_e enum!"
 );
 
