@@ -22,7 +22,15 @@ typedef struct
 	uint64_t column;
 } primec_location_s;
 
+/**
+ * @brief Location formatting macro for printf-like functions.
+ */
 #define primec_location_fmt "%s:%lu:%lu"
-#define primec_location_arg(_location) (_location).file, (_location).line, (_location).column
+
+/**
+ * @brief Location formatting argument macro for printf-like functions.
+ */
+#define primec_location_arg(_location) \
+	(_location).file, (_location).line, (_location).column
 
 #endif
