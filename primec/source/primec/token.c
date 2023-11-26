@@ -106,7 +106,8 @@ static const char* const g_token_type_to_string_map[] =
 	[primec_token_type_double_colon] = "::",
 	[primec_token_type_comma] = ",",
 	[primec_token_type_dot] = ".",
-	[primec_token_type_double_dot] = ".."
+	[primec_token_type_slice] = "..",
+	[primec_token_type_ellipsis] = "..."
 };
 
 _Static_assert(

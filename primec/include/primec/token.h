@@ -110,8 +110,9 @@ typedef enum
 	primec_token_type_double_colon,				// ::
 	primec_token_type_comma,					// ,
 	primec_token_type_dot,						// .
-	primec_token_type_double_dot,				// ..
-	primec_token_type_informationless_count = primec_token_type_double_dot,
+	primec_token_type_slice,					// ..
+	primec_token_type_ellipsis,					// ...
+	primec_token_type_informationless_count = primec_token_type_ellipsis,
 
 	// Tokens with additional information
 	primec_token_type_single_line_comment,		// //
