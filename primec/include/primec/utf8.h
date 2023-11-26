@@ -21,13 +21,31 @@ typedef uint32_t utf8char_t;
 #define primec_utf8_max_size sizeof(utf8char_t)
 #define primec_utf8_invalid UINT32_MAX
 
+/**
+ * @brief Decode utf-8 char from provided string.
+ * 
+ * @note In case function fails to decode utf-8 char from the provided string,
+ * it returns "primec_utf8_invalid".
+ */
 utf8char_t primec_utf8_decode(
 	const char** const string);
 
+/**
+ * @brief Encode utf-8 char into a string.
+ * 
+ * @note The max size of the encoded buffer can be 4 bytes. The actual size the
+ * function required to encode the utf8 char is returned from the function.
+ */
 uint8_t primec_utf8_encode(
 	char* const string,
 	utf8char_t utf8char);
 
+/**
+ * @brief Get utf-8 char from provided file stream.
+ * 
+ * @note In case function fails to decode utf-8 char from the provided string,
+ * it returns "primec_utf8_invalid".
+ */
 utf8char_t primec_utf8_get(
 	FILE* const file);
 
