@@ -15,6 +15,9 @@
 
 #include <stdint.h>
 
+/**
+ * @brief Entry of the executable.
+ */
 int32_t main(
 	const int32_t argc,
 	const char** const argv);
