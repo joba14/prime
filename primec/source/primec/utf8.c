@@ -49,40 +49,40 @@ uint32_t primec_utf8_decode(
 	const char** const string)
 {
 	primec_debug_assert(string != NULL);
-	const uint8_t** s = (const uint8_t**)string;
+	const uint8_t** bytes = (const uint8_t**)string;
 	uint32_t cp = 0;
 
-	if (**s < 128)
+	if (**bytes < 128)
 	{
-		cp = **s;
-		++(*s);
+		cp = **bytes;
+		++(*bytes);
 		return cp;
 	}
 
-	int64_t size = get_utf8_size(**s);
+	int64_t size = get_utf8_size(**bytes);
 
 	if (-1 == size)
 	{
-		++(*s);
+		++(*bytes);
 		return primec_utf8_invalid;
 	}
 
-	uint8_t mask = g_masks[size - 1];
-	cp = **s & mask;
-	++(*s);
+	const uint8_t mask = g_masks[size - 1];
+	cp = **bytes & mask;
+	++(*bytes);
 
 	while (--size)
 	{
-		uint8_t c = **s;
-		++*s;
+		const uint8_t byte = **bytes;
+		++*bytes;
 
-		if ((c >> 6) != 0x02)
+		if ((byte >> 6) != 0x02)
 		{
 			return primec_utf8_invalid;
 		}
 
 		cp <<= 6;
-		cp |= c & 0x3f;
+		cp |= byte & 0x3f;
 	}
 
 	return cp;
@@ -90,22 +90,22 @@ uint32_t primec_utf8_decode(
 
 uint8_t primec_utf8_encode(
 	char* const string,
-	utf8char_t c)
+	utf8char_t utf8char)
 {
 	primec_debug_assert(string != NULL);
 	uint8_t length_minus_one, first;
 
-	if (c < 0x80)
+	if (utf8char < 0x80)
 	{
 		first = 0;
 		length_minus_one = 0;
 	}
-	else if (c < 0x800)
+	else if (utf8char < 0x800)
 	{
 		first = 0xc0;
 		length_minus_one = 1;
 	}
-	else if (c < 0x10000)
+	else if (utf8char < 0x10000)
 	{
 		first = 0xe0;
 		length_minus_one = 2;
@@ -118,12 +118,12 @@ uint8_t primec_utf8_encode(
 
 	for (uint8_t index = length_minus_one; index > 0; --index)
 	{
-		string[index] = (char)((c & 0x3f) | 0x80);
-		c >>= 6;
+		string[index] = (char)((utf8char & 0x3f) | 0x80);
+		utf8char >>= 6;
 	}
 
 	++length_minus_one; // NOTE: Increasing to the actual length.
-	string[0] = (char)(c | first);
+	string[0] = (char)(utf8char | first);
 	return length_minus_one;
 }
 

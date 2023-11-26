@@ -26,7 +26,7 @@ utf8char_t primec_utf8_decode(
 
 uint8_t primec_utf8_encode(
 	char* const string,
-	utf8char_t c);
+	utf8char_t utf8char);
 
 utf8char_t primec_utf8_get(
 	FILE* const file);
