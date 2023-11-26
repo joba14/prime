@@ -1,0 +1,10 @@
+:argc 3
+:argv
+aaa
+aaa
+aaa
+:stdin
+Hello
+:stdout
+Hello, World!
+:stderr

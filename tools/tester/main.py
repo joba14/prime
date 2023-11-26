@@ -8,4 +8,4 @@ if __name__ == "__main__":
 		print(f'usage: python script.py <directory_path>')
 		sys.exit(1)
 
-	directory_path: str = sys.argv[1]
+	tests_directory_path: str = sys.argv[1]
