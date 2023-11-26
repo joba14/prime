@@ -37,10 +37,22 @@ typedef struct
 	bool require_int;
 } primec_lexer_s;
 
+/**
+ * @brief Create a lexer with provided file and its path.
+ */
 primec_lexer_s primec_lexer_from_parts(
 	const char* const file_path,
 	FILE* const file);
 
+/**
+ * @brief Destroy the lexer.
+ * 
+ * This function deallocates the internal lexer's buffer and resets all its fields
+ * to zero.
+ * 
+ * @warning This function does not close the file, used by lexer! It is left for the
+ * user of the lexer to close the file after finishing with the lexer.
+ */
 void primec_lexer_destroy(
 	primec_lexer_s* const lexer);
 
@@ -60,9 +72,15 @@ primec_token_type_e primec_lexer_lex(
 	primec_lexer_s* const lexer,
 	primec_token_s* const token);
 
+/**
+ * @brief Check if lexer has reached end of file or failed to lex token.
+ */
 bool primec_lexer_should_stop_lexing(
 	const primec_token_type_e type);
 
+/**
+ * @brief Cache a token back to the lexer.
+ */
 void primec_lexer_unlex(
 	primec_lexer_s* const lexer,
 	const primec_token_s* const token);
