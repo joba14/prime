@@ -1,5 +1,5 @@
 
-<a href="https://gitlab.com/joba14/prime">
+<a href="https://github.com/joba14/prime">
 	<img src="./logo.svg" alt="Logo" width="400">
 </a>
 
@@ -23,7 +23,7 @@ The prime programming language is a project that seeks to redefine the landscape
 [(to the top)](#prime)
 
 ## Features
-The prime programming language and toolchain are designed with a unique blend of characteristics that prioritize type safety, memory safety, simplicity, and low-level capabilities. To delve deeper into the design principles and technical details behind these features, please refer to the [High-Level Design (HLD) document](./hld.md). This document outlines the overarching goals, architectural aspects, and components of the project, providing a comprehensive understanding of how "prime" achieves its objectives.
+The prime programming language and toolchain are designed with a unique blend of characteristics that prioritize type safety, memory safety, simplicity, and low-level capabilities.
 
 [(to the top)](#prime)
 
