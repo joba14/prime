@@ -1,99 +1,31 @@
 
-// .c
-void do_something(int64_t* const x, int8_t* const arr) {
-	*x += 10;
-	arr[0] = 10;
-}
-
-int64_t x = 1;
-int8_t arr[10];
-do_something(&x, arr);
-
-// .prm (1)
 func do_something(x: &mut i64, arr: &mut [i8]) {
 	*x += 10;
-	arr[0] = 10;
+	arr[0i8] = 10;
 }
 
 let x: mut i64 = 1;
 let arr: mut [i8, 10];
 do_something(&mut x, &mut arr);
 
-// .prm (2)
-func do_something(x: ref mut i64, arr: ref mut [i8]) {
-	*x += 10;
-	arr[0] = 10;
-}
-
-let x: mut i64 = 1;
-let arr: mut [i8, 10];
-do_something(ref mut x, ref mut arr);
-
 // --------------------------------------------------
 
-// .c
-void t()
-{
-	uint8_t arr[10];
-	const uint8_t* const_arr_view = (const uint8_t*)arr;
-	uint8_t* mut_arr_view = (uint8_t* const)arr;
-}
-
-// .prm (1)
 func t() {
 	let arr: mut [u8, 10];
 	let const_arr_view: &[u8] = &arr;
 	let mut_arr_view: &mut [u8] = &mut arr;
 }
 
-// .prm (2)
-func t() {
-	let arr: mut [u8, 10];
-	let const_arr_view: ref [u8] = ref arr;
-	let mut_arr_view: ref mut [u8] = ref mut arr;
-}
-
 // --------------------------------------------------
 
-// .c
-void t()
-{
-	uint8_t* const reg_a = (uint8_t* const)0x0101;
-}
-
-// .prm (1)
 func t() {
 	unsafe {
 		let reg_a: &u8 = 0x0101;
 	}
 }
 
-// .prm (2)
-func t() {
-	unsafe {
-		let reg_a: ref u8 = 0x0101;
-	}
-}
-
 // --------------------------------------------------
 
-// .c
-void f()
-{
-	uint16_t var = 10;
-	uint16_t* const var_ref = &var;
-
-	const uint16_t cvar = 10;
-	const uint16_t* const cvar_ref = &var;
-
-	uint16_t arr[10];
-	uint16_t* const arr_ref = arr;
-
-	const uint16_t carr[10];
-	const uint16_t* const carr_ref = carr;
-}
-
-// .prm (1)
 func f() {
 	let var: mut u16 = 10;
 	let var_ref: &mut u16 = &mut var;
@@ -102,39 +34,14 @@ func f() {
 	let cvar_ref: &u16 = &cvar;
 
 	let arr: mut [u16, 10];
-	let arr_ref: &mut [u16] = &mut carr;
+	let arr_ref: &mut [u16] = &mut arr;
 
 	let carr: [u16, 10];
 	let carr_ref: &[u16] = &carr;
 }
 
-// .prm (2)
-func f() {
-	let var: mut u16 = 10;
-	let var_ref: ref mut u16 = ref mut var;
-
-	let cvar: u16 = 10;
-	let cvar_ref: ref u16 = ref cvar;
-
-	let arr: mut [u16, 10];
-	let arr_ref: ref mut [u16] = ref mut carr;
-
-	let carr: [u16, 10];
-	let carr_ref: ref [u16] = ref carr;
-}
-
 // --------------------------------------------------
 
-// .c
-void f()
-{
-	uint16_t arr[10];
-	uint16_t* const arr_view1 = arr;
-	uint16_t* const arr_view2 = arr + 2;
-	uint16_t* const arr_view3 = arr + 5;
-}
-
-// .prm (1)
 func f() {
 	let arr: mut [u16, 10];
 	let arr_view1: &mut [u16] = &mut arr;
@@ -142,85 +49,27 @@ func f() {
 	let arr_view3: &mut [u16] = &mut arr[5:];
 }
 
-// .prm (2)
-func f() {
-	let arr: mut [u16, 10];
-	let arr_view1: ref mut [u16] = ref mut arr;
-	let arr_view2: ref mut [u16] = ref mut arr[2:];
-	let arr_view3: ref mut [u16] = ref mut arr[5:];
-}
-
 // --------------------------------------------------
 
-// .c
-void f(int16_t* const a, const int16_t* b, const int16_t* const c)
-{
-	*a = 10;
-	b = &*a;
-	(void)c;
-}
-
-// .prm (1)
 func f(a: &mut i16, b: &i16, c: &i16) {
-	a = 10; // only the  value - reference is immutable!
-	a += 1; // only the  value - reference is immutable!
-}
-
-// .prm (2)
-func f(a: ref mut i16, b: ref i16, c: ref i16) {
-	a = 10; // only the  value - reference is immutable!
-	a += 1; // only the  value - reference is immutable!
+	a = 10; // only the value - reference is immutable!
+	a += 1; // only the value - reference is immutable!
 }
 
 // --------------------------------------------------
 
-// .c
-void f()
-{
-	float var = 0;
-	float* const ver_ref = &var;
-	float* ver_ptr = &var;
-}
-
-// .prm (1)
 func f() {
 	let var: mut f32 = 0;
 	let ver_ref: &mut f32 = &mut var;
 	let ver_ptr: *mut f32 = &mut var;
 }
 
-// .prm (2)
-func f() {
-	let var: mut f32 = 0;
-	let ver_ref: ref mut f32 = ref mut var;
-	let ver_ptr: ptr mut f32 = ref mut var;
-}
-
 // --------------------------------------------------
 
-// .c
-typedef struct
-{
-	uint8_t* data;
-	uin64_t capacity;
-	uin64_t count;
-} vector_s;
-
-vector_s vector_create(const uin64_t capacity)
-{
-	vector_s v;
-	v.data = (uint8_t*)malloc(capacity * sizeof(uint8_t));
-	assert(v.data);
-	v.capacity = capacity;
-	v.count = 0;
-	return v;
-}
-
-// .prm (1)
 struct vector_s {
-	data: &[u8],
+	data: *mut u8,
 	capacity: u64,
-	count: u64,
+	count: u64
 }
 
 func vector_create(capacity: u64) -> vector_s {
@@ -231,5 +80,3 @@ func vector_create(capacity: u64) -> vector_s {
 	v.count = 0;
 	return v;
 }
-
-// .prm (2)
