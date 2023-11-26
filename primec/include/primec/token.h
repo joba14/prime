@@ -132,16 +132,22 @@ typedef enum
 	primec_token_type_literal_str,
 
 	primec_token_type_identifier,
+	primec_token_type_invalid,
 
 	// Magic tokens
-	primec_token_type_invalid,
 	primec_token_type_eof,
 	primec_token_type_none
 } primec_token_type_e;
 
+/**
+ * @brief Try to parse token type from a string.
+ */
 primec_token_type_e primec_token_type_from_string(
 	const char* const string);
 
+/**
+ * @brief Stringify token type.
+ */
 const char* primec_token_type_to_string(
 	const primec_token_type_e type);
 
@@ -181,16 +187,36 @@ typedef struct
 	};
 } primec_token_s;
 
+/**
+ * @brief Create token with provided token type and location.
+ * 
+ * @note All the other fields will be set to 0.
+ */
 primec_token_s primec_token_from_parts(
 	const primec_token_type_e type,
 	const primec_location_s location);
 
+/**
+ * @brief Create token with provided token type.
+ * 
+ * @note All the other fields will be set to 0.
+ */
 primec_token_s primec_token_from_type(
 	const primec_token_type_e type);
 
+/**
+ * @brief Destroy token and free all its resources.
+ */
 void primec_token_destroy(
 	primec_token_s* const token);
 
+/**
+ * @brief Convert token structure into a string representation and return a
+ * pointer to it.
+ * 
+ * @warning The formatted token string is safed in the static buffer that gets
+ * overwritten every time this function is called!
+ */
 const char* primec_token_to_string(
 	const primec_token_s* const token);
 
