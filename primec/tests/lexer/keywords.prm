@@ -15,7 +15,6 @@ i32
 i64
 i8
 if
-import
 inl
 let
 loop
@@ -27,4 +26,5 @@ u32
 u64
 u8
 unsafe
+use
 while

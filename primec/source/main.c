@@ -81,34 +81,6 @@ int32_t main(
 		FILE* const source_file = validate_and_open_file_for_reading(source_file_path);
 		if (!source_file) { continue; }
 
-#if primec_lexer_only
-{
-		char lexer_output_file_path[256];
-		(void)memcpy(lexer_output_file_path, source_file_path, source_file_path_length);
-		(void)memcpy(lexer_output_file_path + source_file_path_length, ".lexer\0", 7);
-		FILE* const lexer_output_file = fopen(lexer_output_file_path, "w");
-		if (!lexer_output_file) { primec_logger_panic("failed to create lexer output file `%s`", lexer_output_file_path); }
-
-		primec_lexer_s lexer = primec_lexer_from_parts(
-			source_file_path, source_file
-		);
-
-		primec_token_s token = primec_token_from_type(primec_token_type_none);
-		while (!primec_lexer_should_stop_lexing(primec_lexer_lex(&lexer, &token)))
-		{
-			const char* text = primec_token_to_string(&token);;
-			const uint64_t text_length = strlen(text);
-			(void)fwrite(text, 1, text_length, lexer_output_file);
-			(void)fwrite("\n", 1, 1, lexer_output_file);
-			primec_token_destroy(&token);
-		}
-
-		(void)fclose(lexer_output_file);
-		(void)fclose(source_file);
-		continue;
-}
-#endif
-
 		primec_lexer_s lexer = primec_lexer_from_parts(
 			source_file_path, source_file
 		);

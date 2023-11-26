@@ -39,7 +39,6 @@ static const char* const g_token_type_to_string_map[] =
 	[primec_token_type_keyword_i64] = "i64",
 	[primec_token_type_keyword_i8] = "i8",
 	[primec_token_type_keyword_if] = "if",
-	[primec_token_type_keyword_import] = "import",
 	[primec_token_type_keyword_inl] = "inl",
 	[primec_token_type_keyword_let] = "let",
 	[primec_token_type_keyword_loop] = "loop",
@@ -51,6 +50,7 @@ static const char* const g_token_type_to_string_map[] =
 	[primec_token_type_keyword_u64] = "u64",
 	[primec_token_type_keyword_u8] = "u8",
 	[primec_token_type_keyword_unsafe] = "unsafe",
+	[primec_token_type_keyword_use] = "use",
 	[primec_token_type_keyword_while] = "while",
 
 	[primec_token_type_assign] = "=",
